@@ -45,14 +45,14 @@ LIARS_CODEX_BIN="$(command -v codex)" npm start
 
 ## 模型玩家、发言与本机战绩
 
-| 玩家自取名 | 模型 | 推理档位 |
+| 玩家名 | 模型 | 推理档位 |
 | --- | --- | --- |
-| Emma | `gpt-6-astra` | `medium` |
-| Ethan | `gpt-5.6-sol` | `high` |
-| Liam | `gpt-5.6-terra` | `xhigh` |
-| Mason | `gpt-5.6-luna` | `max` |
+| Astra | `gpt-6-astra` | `medium` |
+| Sol | `gpt-5.6-sol` | `high` |
+| Terra | `gpt-5.6-terra` | `xhigh` |
+| Luna | `gpt-5.6-luna` | `max` |
 
-这四个名字由对应模型各自生成，共 4 次取名调用，保存在 `public/model-names.json`。`ops/name-model-players.mjs` 默认只补齐缺失名字；明确传入 `--rename` 时重新取名。每次最多每个模型 2 次请求。名字要求为常见、现代的英文人名；改名不改变模型身份和战绩归属。
+按用户要求，玩家名直接使用 Astra、Sol、Terra、Luna，不带模型版本数字，保存在 `public/model-names.json`。改名不改变实际模型、推理档位、玩家身份或战绩归属。旧取名脚本保留供历史参考，游戏启动不会调用它。
 
 牌桌仍为你加 3 个 AI。设置 → AI 玩家，可以为每个席位选择模型；切换模型会切换其独立会话和玩家身份。模型在每次决策中同时给出简短发言，建议不超过 10 字，最多 20 个 Unicode 字符（含标点），在座位旁显示 8 秒并进入公开记录，不播放语音，也不为发言额外请求模型。
 

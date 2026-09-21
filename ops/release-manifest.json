@@ -34,11 +34,11 @@
     },
     {
       "path": "public/app.js",
-      "sha256": "35ae5d6a1e94813a4dc0a299c0a80b55cb4339f0293f90cc40c3a7e640b51d09"
+      "sha256": "ea1f88ff83940b0a92b20742d69627f924ab15d709c135acdfe96130fe0aeb8e"
     },
     {
       "path": "public/index.html",
-      "sha256": "1a209d331d3d33e7167619c5be3e1075339fbe3d077f435bb169e679d4dd4e5a"
+      "sha256": "3d3dfa8749e6d2e9d9f038426a864bfc44e2f9e4f052c421648da0854fa20c20"
     },
     {
       "path": "public/scene.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "a6b8a16f8969ddb4ac5f8857dc1362b22dbd938302bb5cc1ac3dec218028ed71"
+      "sha256": "569399817b80faf51c74ba33cb8548afd52555b9c5dc60a401c69ae73df26190"
     },
     {
       "path": "docs/research.md",
@@ -330,7 +330,7 @@
     },
     {
       "path": "public/model-names.json",
-      "sha256": "1ffdb2acf5cdf01273b5fde9145bf9bf6caebf677e7dd559fce1323e0a24c650"
+      "sha256": "621986093440dca877c3683b3dda33b313c0898a2f79fa6fb6275bf695ac9a23"
     },
     {
       "path": "ops/name-model-players.mjs",
@@ -428,22 +428,22 @@
       {
         "model": "gpt-6-astra",
         "effort": "medium",
-        "name": "Emma"
+        "name": "Astra"
       },
       {
         "model": "gpt-5.6-sol",
         "effort": "high",
-        "name": "Ethan"
+        "name": "Sol"
       },
       {
         "model": "gpt-5.6-terra",
         "effort": "xhigh",
-        "name": "Liam"
+        "name": "Terra"
       },
       {
         "model": "gpt-5.6-luna",
         "effort": "max",
-        "name": "Mason"
+        "name": "Luna"
       }
     ],
     "identityGenerationCalls": 4,
@@ -456,9 +456,8 @@
     "gameplayValidated": false
   },
   "modelNameRevision": {
-    "style": "common modern English first names",
-    "modelCalls": 4,
-    "repairs": 0,
+    "style": "model names without version numbers, requested by user",
+    "modelCalls": 0,
     "statsIdentityChanged": false,
     "testsRun": 0
   }

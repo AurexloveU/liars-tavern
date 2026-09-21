@@ -153,7 +153,7 @@
           <div class="settings-grid">
             <label id="ai-base-url-field"><span>Base URL</span><input id="ai-base-url" type="url" placeholder="https://api.example.com/v1"></label>
             <label id="codex-preset-field" hidden><span>模型玩家</span><select id="codex-preset">
-              <option value="astra">Emma · Astra medium</option><option value="sol">Ethan · Sol high</option><option value="terra">Liam · Terra xhigh</option><option value="luna">Mason · Luna max</option>
+              <option value="astra">Astra · medium</option><option value="sol">Sol · high</option><option value="terra">Terra · xhigh</option><option value="luna">Luna · max</option>
             </select></label>
             <label id="ai-model-field"><span>模型名</span><input id="ai-model" type="text" placeholder="gpt-5.6-luna"></label>
             <label><span>协议</span><select id="ai-protocol"><option value="chat">OpenAI 兼容 · chat</option><option value="responses">OpenAI · responses</option><option value="anthropic">Anthropic · messages</option><option id="ai-protocol-codex" value="codex" hidden>Codex · 本机登录</option></select></label>
@@ -161,7 +161,7 @@
             <label id="ai-max-output-field"><span>每次回答上限（tokens）</span><input id="ai-max-output" type="number" min="256" max="32768" step="1" value="4096" inputmode="numeric"><small class="field-help">包含模型思考用量；较大可能增加用量。</small></label>
           </div>
           <label id="ai-clear-key-field" class="check-label"><input id="ai-clear-key" type="checkbox"><span>清除该席位密钥</span></label>
-          <p id="codex-help" class="field-help" hidden>使用当前 Codex 登录和选定档位。模型自行取名；发言尽量不超过 10 字，最多 20 字。</p>
+          <p id="codex-help" class="field-help" hidden>使用当前 Codex 登录和选定档位。玩家名使用模型原名；发言尽量不超过 10 字，最多 20 字。</p>
           <label><span>可选性格提示词</span><textarea id="ai-persona" rows="3" placeholder="例如：谨慎、话少，偏爱观察公开记录。"></textarea></label>
           <div class="settings-actions">
             <button id="apply-ai-button" class="subtle-button" type="button">应用到其他 AI</button>

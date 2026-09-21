@@ -731,7 +731,7 @@ function setupUi() {
     modelPlayers = data.players;
     for (const option of $('codex-preset').options) {
       const player = modelPlayers.find((entry) => entry.id === option.value);
-      if (player) option.textContent = `${player.name} · ${player.label}`;
+      if (player) option.textContent = player.label.startsWith(`${player.name} ·`) ? player.label : `${player.name} · ${player.label}`;
     }
   }).catch(() => {});
   $('solo-pause-button').addEventListener('click', toggleSoloPause);

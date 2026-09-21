@@ -6,36 +6,44 @@
       "model": "gpt-6-astra",
       "effort": "medium",
       "label": "Astra · medium",
-      "name": "Emma",
-      "chosenByModel": true,
-      "createdAt": "2026-09-21T03:12:04.330Z"
+      "name": "Astra",
+      "chosenByModel": false,
+      "createdAt": "2026-09-21T03:12:04.330Z",
+      "nameSource": "user-requested model name without version numbers",
+      "updatedAt": "2026-09-21T03:14:06.609162+00:00"
     },
     "sol": {
       "id": "sol",
       "model": "gpt-5.6-sol",
       "effort": "high",
       "label": "Sol · high",
-      "name": "Ethan",
-      "chosenByModel": true,
-      "createdAt": "2026-09-21T03:12:11.969Z"
+      "name": "Sol",
+      "chosenByModel": false,
+      "createdAt": "2026-09-21T03:12:11.969Z",
+      "nameSource": "user-requested model name without version numbers",
+      "updatedAt": "2026-09-21T03:14:06.609341+00:00"
     },
     "terra": {
       "id": "terra",
       "model": "gpt-5.6-terra",
       "effort": "xhigh",
       "label": "Terra · xhigh",
-      "name": "Liam",
-      "chosenByModel": true,
-      "createdAt": "2026-09-21T03:12:18.375Z"
+      "name": "Terra",
+      "chosenByModel": false,
+      "createdAt": "2026-09-21T03:12:18.375Z",
+      "nameSource": "user-requested model name without version numbers",
+      "updatedAt": "2026-09-21T03:14:06.609343+00:00"
     },
     "luna": {
       "id": "luna",
       "model": "gpt-5.6-luna",
       "effort": "max",
       "label": "Luna · max",
-      "name": "Mason",
-      "chosenByModel": true,
-      "createdAt": "2026-09-21T03:12:25.332Z"
+      "name": "Luna",
+      "chosenByModel": false,
+      "createdAt": "2026-09-21T03:12:25.332Z",
+      "nameSource": "user-requested model name without version numbers",
+      "updatedAt": "2026-09-21T03:14:06.609344+00:00"
     }
   }
 }
