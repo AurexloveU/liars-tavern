@@ -10,11 +10,11 @@
   "files": [
     {
       "path": "game.js",
-      "sha256": "7c0ce98c206a6d3d9e50a6c3f300fed404ae5b73b22c2b2c27d5752efa62167a"
+      "sha256": "723b4b5c00d212de32199fa0b74df8707f053be9e82456807dd1685d782e58c6"
     },
     {
       "path": "ai.js",
-      "sha256": "1ceaee07fd5b1aba499b8b6f3b8ead69b108fca111a22ce90985dd326eefbb66"
+      "sha256": "f0bf472e2800990dcb580b89a4630fa204da0254fc54d379b5e2c50fbe330425"
     },
     {
       "path": "bot.js",
@@ -22,7 +22,7 @@
     },
     {
       "path": "server.js",
-      "sha256": "7c4ed91b5207ea54ad7684781b8a16fca5db6e2acdcbe58c1a73a0d3212734e0"
+      "sha256": "025ac330e6e7da99f93d929e41499c44f3a49225323035a8b98f606263443d9d"
     },
     {
       "path": "package.json",
@@ -34,11 +34,11 @@
     },
     {
       "path": "public/app.js",
-      "sha256": "3f156f44354ba65550c60da77897fbb5bdac368e10e504bf19354ca0ea8d8670"
+      "sha256": "35ae5d6a1e94813a4dc0a299c0a80b55cb4339f0293f90cc40c3a7e640b51d09"
     },
     {
       "path": "public/index.html",
-      "sha256": "e94e6aa7b6252ad7d16effa0bf8f9fb0138cad99ec78345d7c8c8d9c7f458b43"
+      "sha256": "f3e2a575ce3043ffc1197be71d03ee8d1929a94e23fac696eb08e307340e38a2"
     },
     {
       "path": "public/scene.js",
@@ -46,7 +46,7 @@
     },
     {
       "path": "public/styles.css",
-      "sha256": "24dbd742a2bb8df27b4bac977264522ed3af567f4f778097680e06ddb601dd5e"
+      "sha256": "95767ef67256cdd403b5f7ea6f3fbfa248add52c7e0d3fef343e521f5e06f1bd"
     },
     {
       "path": "test/ai.test.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "f76a59fe7c0a836b0200bb50f59aabcbf50a3c2a07c1081df4e3d6a9472d586a"
+      "sha256": "8a4975e6a4c47736711e03e02b2d71d25042dc3a5785f15444ee1d808f5e517d"
     },
     {
       "path": "docs/research.md",
@@ -158,11 +158,11 @@
     },
     {
       "path": "codex-provider.js",
-      "sha256": "4acfaf9883ca35ee89d643f30150aa1d3636297b01e23fa18a25bb2bf80d75ef"
+      "sha256": "a805f1c23f4bf1e14684fcf323a5a0931cf62e6421654d5bb1bed1a90370d47a"
     },
     {
       "path": "codex-server.js",
-      "sha256": "497432f8a64acdf5334291537d50eaf4655df2e3d845f4028e5104ffe87c1868"
+      "sha256": "3b5a80bd5740f9aa01c26d0cdf91d9b02c88c968d1dbf261b8cd9ad84ac661da"
     },
     {
       "path": "test/codex-mode.test.js",
@@ -174,7 +174,7 @@
     },
     {
       "path": "ops/codex-runtime/README.md",
-      "sha256": "3a91a384cc56d4c990fa97651dc013028b60253a5a9cd718a48d465566a80e21"
+      "sha256": "ad2b2333dcbc9f37834db7509ff4980b51a5629e8c8a1849a1f33160777dde4c"
     },
     {
       "path": "ops/verify-codex.mjs",
@@ -319,6 +319,22 @@
     {
       "path": "docs/card-callout-art-v1.md",
       "sha256": "749eecd9da95f957c89862ae46dd7bc20d40604945957e82f68f2767c8c2eb81"
+    },
+    {
+      "path": "player-records.js",
+      "sha256": "c2e1e462519c716b8411a57e88193223774cfb53a5d432ccc277a17384da90a4"
+    },
+    {
+      "path": "public/model-presets.js",
+      "sha256": "7e4b6bc8a41bad085796f9ef87ece783b9c2873208d50739f969a15f30cd0f15"
+    },
+    {
+      "path": "public/model-names.json",
+      "sha256": "fcc4bdbfd520c4e4b018f9e7ab958899a5400979c02620671055b9c7087e910a"
+    },
+    {
+      "path": "ops/name-model-players.mjs",
+      "sha256": "9428eda4eb4fec1f33ddda76554ee38e943a0ff8976027c32fbb805de3443800"
     }
   ],
   "excluded": [
@@ -405,5 +421,38 @@
     "testsRun": 0,
     "actualModelValidationCalls": 0,
     "newLatencyMeasured": false
+  },
+  "modelPlayersAndRecords": {
+    "date": "2026-09-21",
+    "models": [
+      {
+        "model": "gpt-6-astra",
+        "effort": "medium",
+        "name": "赊月客"
+      },
+      {
+        "model": "gpt-5.6-sol",
+        "effort": "high",
+        "name": "烬杯狐"
+      },
+      {
+        "model": "gpt-5.6-terra",
+        "effort": "xhigh",
+        "name": "雾骰郎"
+      },
+      {
+        "model": "gpt-5.6-luna",
+        "effort": "max",
+        "name": "醉月鸦"
+      }
+    ],
+    "identityGenerationCalls": 4,
+    "identityRepairCalls": 0,
+    "speechPreferredLength": 10,
+    "speechMaximumCodePoints": 20,
+    "statsFile": "ops/codex-runtime/player-records.json",
+    "statsScope": "local device, match-ID deduplicated; prior missing results not reconstructed",
+    "testsRun": 0,
+    "gameplayValidated": false
   }
 }

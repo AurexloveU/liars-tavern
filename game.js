@@ -1,3 +1,4 @@
+import { modelPreset, shortSpeech } from './public/model-presets.js';
 import crypto from 'node:crypto';
 
 export const RANKS = Object.freeze(['A', 'K', 'Q', 'JOKER']);
@@ -18,6 +19,7 @@ const DEFAULT_SYSTEM_PROMPT = [
   'Return one JSON object only: {"action":"play"|"challenge","cardIds":[...],"speech":"..."}.',
   'When action is play, choose 1 to 3 of your own card ids and claim the current target rank.',
   'When mustChallenge is true, use challenge. Do not include chain of thought.',
+  'Talk to the table in Simplified Chinese; aim for 10 characters or fewer, and never exceed 20 characters including punctuation.',
 ].join(' ');
 
 function clone(value) {
@@ -104,7 +106,10 @@ function createAIConfig(source = {}, env = process.env, allowCodex = false) {
     if (!allowCodex) throw new Error('Codex is only enabled in the local Codex game server');
     result.baseUrl = '';
     result.apiKey = '';
-    result.model = 'gpt-5.6-luna';
+    const preset = modelPreset(result.model || 'gpt-5.6-luna');
+    if (!preset) throw new Error('请选择 Astra、Sol、Terra 或 Luna');
+    result.model = preset.model;
+    result.effort = preset.effort;
     result.codexEnabled = true;
   }
   if (result.apiKey.length > 1000) throw new Error('apiKey invalid');
@@ -112,7 +117,7 @@ function createAIConfig(source = {}, env = process.env, allowCodex = false) {
 }
 
 export function isAIConfigured(ai) {
-  if (ai?.protocol === 'codex') return ai.codexEnabled === true && ai.model === 'gpt-5.6-luna';
+  if (ai?.protocol === 'codex') return ai.codexEnabled === true && Boolean(modelPreset(ai.model));
   return Boolean(ai && ai.baseUrl && ai.model && ai.apiKey);
 }
 
@@ -156,6 +161,8 @@ export class LiarRoom {
     this.revision = 0;
     this.eventSeq = 0;
     this.createdAt = this.now();
+    this.matchId = crypto.randomUUID();
+    this.modelNames = options.modelNames || {};
     this.lastActivityAt = this.createdAt;
     this.hostSeat = 0;
     this.hostToken = options.hostToken || randomToken();
@@ -185,7 +192,7 @@ export class LiarRoom {
     if (options.host) this._assignHuman(0, options.host, this.hostToken);
     for (let seat = 1; seat < SEAT_COUNT; seat += 1) {
       this._assignAI(seat, options.aiDefaults || {});
-      this.players[seat].name = `AI ${seat}`;
+      this.players[seat].name = (this.players[seat].ai.protocol === 'codex' ? this.modelNames[modelPreset(this.players[seat].ai.model)?.id]?.name : null) || `AI ${seat}`;
     }
     if (options.host) this.addEvent(
       this.soloMode ? `${this.players[0].name} 坐到桌边，准备开始单机牌局` : `${this.players[0].name} 创建了房间`,
@@ -210,6 +217,7 @@ export class LiarRoom {
       chamber: null,
       ai: createAIConfig(this.aiDefaults, process.env, this.allowCodex),
       aiCalls: 0,
+      speech: null,
     };
   }
 
@@ -234,6 +242,8 @@ export class LiarRoom {
     seat.token = null;
     seat.connected = true;
     seat.ai = createAIConfig(config, process.env, this.allowCodex);
+    const ownName = this.modelNames[modelPreset(seat.ai.model)?.id]?.name;
+    if (seat.ai.protocol === 'codex' && ownName) seat.name = ownName;
     seat.alive = this.phase !== 'lobby';
     return seat;
   }
@@ -246,8 +256,8 @@ export class LiarRoom {
     }
   }
 
-  addEvent(text, type = 'system') {
-    this.events.push({ id: ++this.eventSeq, text: String(text).slice(0, 300), type: String(type) });
+  addEvent(text, type = 'system', details = {}) {
+    this.events.push({ ...details, id: ++this.eventSeq, text: String(text).slice(0, 300), type: String(type), createdAt: this.now() });
     if (this.events.length > 12) this.events.splice(0, this.events.length - 12);
     this._touch();
   }
@@ -332,6 +342,7 @@ export class LiarRoom {
   snapshot() {
     return {
       version: 1,
+      matchId: this.matchId,
       phase: this.phase,
       round: this.round,
       roundStarter: this.roundStarter,
@@ -375,6 +386,7 @@ export class LiarRoom {
     if (!PHASES.includes(snapshot.phase)) throw new Error('solo snapshot phase invalid');
     this.clearTimers();
     this._invalidateAIRequest();
+    this.matchId = typeof snapshot.matchId === 'string' ? snapshot.matchId : `legacy-${snapshot.createdAt || this.createdAt}`;
     this.phase = snapshot.phase;
     this.round = Number.isInteger(snapshot.round) && snapshot.round >= 0 ? snapshot.round : 0;
     this.roundStarter = Number.isInteger(snapshot.roundStarter) ? snapshot.roundStarter : null;
@@ -424,6 +436,8 @@ export class LiarRoom {
       seat.ai = createAIConfig({ ...savedAI, apiKey: '' }, {}, this.allowCodex);
       seat.ai.error = typeof savedAI.error === 'string' ? savedAI.error.slice(0, 300) : null;
       seat.ai.thinking = false;
+      const ownName = this.modelNames[modelPreset(seat.ai.model)?.id]?.name;
+      if (seat.kind === 'ai' && seat.ai.protocol === 'codex' && ownName) seat.name = ownName;
       seat.aiCalls = Number.isInteger(saved?.aiCalls) ? saved.aiCalls : 0;
       return seat;
     });
@@ -513,7 +527,12 @@ export class LiarRoom {
     source.apiKey = payload.clearKey === true
       ? ''
       : (typeof payload.apiKey === 'string' && payload.apiKey.length > 0 ? payload.apiKey : seat.ai.apiKey);
-    seat.ai = createAIConfig(source, {}, this.allowCodex);
+    const changedModel = source.protocol !== seat.ai.protocol || source.model !== seat.ai.model;
+    const configuredAI = createAIConfig(source, {}, this.allowCodex);
+    if (this.aiRequest?.seatIndex === seat.seatIndex) this._invalidateAIRequest();
+    seat.ai = configuredAI;
+    if (changedModel) seat.speech = null;
+    if (seat.ai.protocol === 'codex') seat.name = this.modelNames[modelPreset(seat.ai.model)?.id]?.name || modelPreset(seat.ai.model).label;
     seat.ai.error = null;
     seat.ai.thinking = false;
     this.addEvent(`AI ${seat.seatIndex + 1} 配置已更新`, 'ai_config');
@@ -653,6 +672,7 @@ export class LiarRoom {
     if (active.length !== SEAT_COUNT) throw new Error('four occupied seats required');
     if (!this._allAIConfigured()) throw new Error('all ai seats need configuration');
     this.totalAICalls = 0;
+    this.matchId = crypto.randomUUID();
     for (const seat of this.players) {
       if (seat.kind === 'open') continue;
       seat.alive = true;
@@ -664,6 +684,7 @@ export class LiarRoom {
       seat.aiCalls = 0;
     }
     this.winnerSeat = null;
+    for (const seat of this.players) seat.speech = null;
     this.soloPaused = false;
     this.phase = 'playing';
     this.beginRound({ initial: true, starterSeat });
@@ -981,7 +1002,7 @@ export class LiarRoom {
       if (!decision || (decision.action !== 'play' && decision.action !== 'challenge')) throw new Error('AI returned invalid action');
       if (decision.action === 'challenge') this.challenge(seatIndex);
       else this.play(seatIndex, decision.cardIds);
-      if (typeof decision.speech === 'string' && decision.speech.trim()) this.addEvent(`${seat.name}：${decision.speech.trim().slice(0, 240)}`, 'speech');
+      this.say(seatIndex, decision.speech);
       seat.ai.error = null;
       return this.publicStateFor(null);
     } catch (error) {
@@ -993,9 +1014,8 @@ export class LiarRoom {
       }
       return this.publicStateFor(null);
     } finally {
-      seat.ai.thinking = false;
       const ownsRequest = this.aiRequest?.requestId === requestId;
-      if (ownsRequest) this.aiRequest = null;
+      if (ownsRequest) { seat.ai.thinking = false; this.aiRequest = null; }
       this._touch();
       // The action itself advances the turn while this request is still
       // marked in flight. Kick the next AI only after releasing that marker;
@@ -1023,7 +1043,7 @@ export class LiarRoom {
       if (!this.aiRequest || this.aiRequest.requestId !== requestId || this.phase !== 'roulette' || this.loserSeat !== seatIndex || this.round !== requestRound) return this.publicStateFor(null);
       if (decision?.action !== 'pullTrigger') throw new Error('AI roulette decision invalid');
       const result = this.pullTrigger(seatIndex);
-      if (typeof decision.speech === 'string' && decision.speech.trim()) this.addEvent(`${seat.name}：${decision.speech.trim().slice(0, 240)}`, 'speech');
+      this.say(seatIndex, decision.speech);
       return result;
     } catch (error) {
       if (!callsRecorded) this._recordAICalls(seat, error?.calls);
@@ -1034,16 +1054,24 @@ export class LiarRoom {
       }
       return this.publicStateFor(null);
     } finally {
-      seat.ai.thinking = false;
-      if (this.aiRequest?.requestId === requestId) this.aiRequest = null;
+      if (this.aiRequest?.requestId === requestId) { seat.ai.thinking = false; this.aiRequest = null; }
       this._touch();
     }
+  }
+
+  say(seatIndex, value) {
+    const seat = this._assertSeat(seatIndex);
+    const text = shortSpeech(value);
+    if (!text) return;
+    seat.speech = { text, createdAt: this.now(), id: this.eventSeq + 1 };
+    this.addEvent(`${seat.name}：${text}`, 'speech', { seatIndex });
   }
 
   publicAIFor(seatIndex, { includeBaseUrl = false } = {}) {
     const seat = this._assertSeat(seatIndex);
     return {
       model: seat.ai.model,
+      effort: seat.ai.effort,
       ...(includeBaseUrl ? { baseUrl: seat.ai.baseUrl } : {}),
       protocol: seat.ai.protocol,
       tokenLimitField: seat.ai.tokenLimitField,
@@ -1061,6 +1089,7 @@ export class LiarRoom {
     const self = Number.isInteger(selfSeat) ? this.players[selfSeat] : null;
     const state = {
       code: this.code,
+      matchId: this.matchId,
       codexAvailable: this.allowCodex,
       phase: this.phase,
       hostSeat: this.hostSeat,
@@ -1070,6 +1099,7 @@ export class LiarRoom {
       players: this.players.map((seat) => ({
         seatIndex: seat.seatIndex,
         name: seat.name,
+        speech: clone(seat.speech),
         kind: seat.kind,
         gender: seat.gender,
         skin: seat.skin,

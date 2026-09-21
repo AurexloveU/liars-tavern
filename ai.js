@@ -1,3 +1,4 @@
+import { shortSpeech } from './public/model-presets.js';
 import dns from 'node:dns/promises';
 import net from 'node:net';
 import { Agent } from 'undici';
@@ -12,7 +13,7 @@ export const AI_SYSTEM_PROMPT = [
   'Output JSON only and never output chain of thought.',
   'When legalActions contains only play, play 1 to 3 cards. When legalActions contains challenge, challenge only the immediately previous play; when legalActions contains only challenge, you must challenge it.',
   'There is no challenge before a previous play. During roulette the only legal action is pullTrigger with cardIds exactly [].',
-  'Speech is optional and should default to brief Simplified Chinese when provided.',
+  'Speak in character in Simplified Chinese to the table; aim for at most 10 characters and never exceed 20 characters including punctuation. Never disclose your actual hidden cards. React to public player remarks when relevant.',
 ].join(' ');
 
 const MAX_PROVIDER_BODY_BYTES = 256 * 1024;
@@ -241,7 +242,7 @@ export function validateDecision(value, { phase = 'playing', hand = [], legalAct
     if (cardIds.some((id) => !ownIds.has(id))) throw safeError('AI selected card not in own hand', { code: 'AI_OUTPUT_INVALID' });
   }
   if (phase === 'playing' && action === 'challenge' && cardIds.length) throw safeError('challenge cannot include cards', { code: 'AI_OUTPUT_INVALID' });
-  const speech = typeof value.speech === 'string' ? value.speech.slice(0, 240) : '';
+  const speech = shortSpeech(value.speech);
   return { action, cardIds, speech };
 }
 

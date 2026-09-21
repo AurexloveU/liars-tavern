@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b1110">
     <title>骗子酒馆 · Liar's Deck</title>
-    <link rel="stylesheet" href="./styles.css?v=gold-claims-1">
+    <link rel="stylesheet" href="./styles.css?v=players-talk-records-1">
   </head>
   <body>
     <main id="app-shell" class="app-shell">
@@ -129,7 +129,13 @@
         <form id="settings-form" class="modal-card settings-card">
           <button id="settings-close" class="modal-close" type="button" aria-label="关闭设置">×</button>
           <span class="eyebrow">桌面设置</span>
-          <h2>AI 席位与偏好</h2>
+          <h2>桌面设置</h2>
+          <div class="settings-tabs" role="tablist" aria-label="设置分类">
+            <button type="button" role="tab" id="tab-ai" aria-controls="settings-ai-panel" aria-selected="true" data-settings-tab="ai">AI 玩家</button>
+            <button type="button" role="tab" id="tab-records" aria-controls="settings-records-panel" aria-selected="false" data-settings-tab="records">本机战绩</button>
+            <button type="button" role="tab" id="tab-audio" aria-controls="settings-audio-panel" aria-selected="false" data-settings-tab="audio">声音</button>
+          </div>
+          <section id="settings-audio-panel" role="tabpanel" aria-labelledby="tab-audio" hidden>
           <div class="music-settings">
             <label for="music-volume"><span>配乐音量</span><output id="music-volume-label" for="music-volume">22%</output></label>
             <input id="music-volume" type="range" min="0" max="100" step="1" value="22" aria-label="配乐音量">
@@ -140,23 +146,38 @@
             <input id="card-sound-volume" type="range" min="0" max="100" step="1" value="50" aria-label="出牌音效音量">
             <p class="field-help">报牌以淡金色字样显示；右上角 ♪ 控制出牌和轮盘音效。</p>
           </div>
+          </section>
+          <section id="settings-ai-panel" role="tabpanel" aria-labelledby="tab-ai">
           <p class="modal-intro">外部 AI 席位使用自己的接口。密钥只随一次配置动作发送，不回显、不写入浏览器；Codex 席位使用当前 Codex 登录。</p>
           <div id="ai-seat-picker" class="ai-seat-picker"></div>
           <div class="settings-grid">
             <label id="ai-base-url-field"><span>Base URL</span><input id="ai-base-url" type="url" placeholder="https://api.example.com/v1"></label>
+            <label id="codex-preset-field" hidden><span>模型玩家</span><select id="codex-preset">
+              <option value="astra">赊月客 · Astra medium</option><option value="sol">烬杯狐 · Sol high</option><option value="terra">雾骰郎 · Terra xhigh</option><option value="luna">醉月鸦 · Luna max</option>
+            </select></label>
             <label id="ai-model-field"><span>模型名</span><input id="ai-model" type="text" placeholder="gpt-5.6-luna"></label>
             <label><span>协议</span><select id="ai-protocol"><option value="chat">OpenAI 兼容 · chat</option><option value="responses">OpenAI · responses</option><option value="anthropic">Anthropic · messages</option><option id="ai-protocol-codex" value="codex" hidden>Codex · 本机登录</option></select></label>
             <label id="ai-key-field"><span>API key</span><input id="ai-key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label>
             <label id="ai-max-output-field"><span>每次回答上限（tokens）</span><input id="ai-max-output" type="number" min="256" max="32768" step="1" value="4096" inputmode="numeric"><small class="field-help">包含模型思考用量；较大可能增加用量。</small></label>
           </div>
           <label id="ai-clear-key-field" class="check-label"><input id="ai-clear-key" type="checkbox"><span>清除该席位密钥</span></label>
-          <p id="codex-help" class="field-help" hidden>本机 Codex 已登录；此席位使用 gpt-5.6-luna Max，无需 Base URL 或 API key。</p>
+          <p id="codex-help" class="field-help" hidden>使用当前 Codex 登录和选定档位。模型自行取名；发言尽量不超过 10 字，最多 20 字。</p>
           <label><span>可选性格提示词</span><textarea id="ai-persona" rows="3" placeholder="例如：谨慎、话少，偏爱观察公开记录。"></textarea></label>
           <div class="settings-actions">
             <button id="apply-ai-button" class="subtle-button" type="button">应用到其他 AI</button>
             <button class="primary-button" type="submit">保存该席位</button>
           </div>
           <p id="settings-error" class="form-error" role="alert" hidden></p>
+          </section>
+          <section id="settings-records-panel" role="tabpanel" aria-labelledby="tab-records" hidden>
+            <h3>本设备玩家战绩</h3>
+            <p id="records-note" class="field-help">胜负按完整牌局结算；暂停和刷新不会重复计数。</p>
+            <div class="records-scroll"><table class="records-table"><thead><tr><th>玩家</th><th>参与</th><th>已结算</th><th>胜</th><th>负</th><th>胜率</th></tr></thead><tbody id="records-body"></tbody></table></div>
+            <p id="records-empty" class="field-help">开始牌局后，这里会显示玩家记录。</p>
+            <p id="records-error" class="form-error" hidden></p>
+            <p class="field-help">真人按名字识别，模型玩家按模型身份识别。更换席位、刷新或重启均保留战绩；中途换入的玩家也记为参与，未结束的局不计胜负。</p>
+            <button id="records-refresh" type="button" class="subtle-button">刷新战绩</button>
+          </section>
         </form>
       </dialog>
 
@@ -179,6 +200,6 @@
       }
     </script>
     <script src="./socket.io/socket.io.js"></script>
-    <script type="module" src="./app.js?v=gold-claims-1"></script>
+    <script type="module" src="./app.js?v=players-talk-records-1"></script>
   </body>
 </html>

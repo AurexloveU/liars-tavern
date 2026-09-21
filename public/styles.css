@@ -412,3 +412,18 @@ kbd { padding: 1px 4px; border: 1px solid rgba(255, 255, 255, 0.16); border-radi
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+.settings-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); padding-bottom: 10px; }
+.settings-tabs button { flex: 1; min-height: 34px; padding: 6px 10px; background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 6px; }
+.settings-tabs button[aria-selected="true"] { color: var(--ink); border-color: var(--brass-dim); background: rgba(199,154,82,.12); }
+#settings-ai-panel { display: grid; gap: 12px; }
+#settings-records-panel h3 { margin: 0 0 10px; color: var(--brass-soft); }
+.records-scroll { overflow-x: auto; max-height: 45vh; margin: 14px 0; }
+.records-table { border-collapse: collapse; width: 100%; font-size: 12px; font-variant-numeric: tabular-nums; }
+.records-table th, .records-table td { padding: 10px 7px; text-align: right; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
+.records-table th:first-child, .records-table td:first-child { text-align: left; }
+.records-table th { color: var(--muted); font-weight: 500; }
+.records-table td strong, .records-table td small { display: block; }
+.records-table td small { color: var(--muted); font-size: 10px; margin-top: 3px; }
+.seat-speech { position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%); width: max-content; max-width: 180px; padding: 8px 11px; border: 1px solid var(--brass-dim); border-radius: 8px; background: #17231e; color: #ead8ad; font-size: 14px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; box-shadow: 0 4px 14px #0008; }
+.seat-speech::before { content: ''; position: absolute; width: 6px; height: 6px; top: -4px; left: calc(50% - 3px); transform: rotate(45deg); border-left: 1px solid var(--brass-dim); border-top: 1px solid var(--brass-dim); background: #17231e; }

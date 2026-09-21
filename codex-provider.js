@@ -1,3 +1,4 @@
+import { MODEL_PRESETS, modelPreset } from './public/model-presets.js';
 import { spawn as defaultSpawn } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import { mkdirSync } from 'node:fs';
@@ -31,7 +32,7 @@ export const CODEX_BASE_INSTRUCTIONS = [
   'Return only one JSON object with action, cardIds, and speech. Do not return chain of thought, markdown, or tool calls.',
   'During playing, play 1 to 3 of your own cards or challenge the immediately previous play when legal. If legalActions contains only challenge, challenge.',
   'There is no challenge before the first play. During roulette, the only legal action is pullTrigger with cardIds exactly [].',
-  'Speech should be a brief Simplified Chinese sentence and must not disclose hidden information.',
+  'Speak in character to the other players in Simplified Chinese. Aim for 10 characters or fewer, never exceed 20 characters including punctuation. Do not reveal your actual hidden cards. Respond to public table talk when useful.',
 ].join(' ');
 
 const ACTION_SCHEMA = Object.freeze({
@@ -40,7 +41,7 @@ const ACTION_SCHEMA = Object.freeze({
   properties: {
     action: { type: 'string', enum: ['play', 'challenge', 'pullTrigger'] },
     cardIds: { type: 'array', items: { type: 'string' }, minItems: 0, maxItems: 3 },
-    speech: { type: 'string', maxLength: 240 },
+    speech: { type: 'string', maxLength: 20 },
   },
   required: ['action', 'cardIds', 'speech'],
 });
@@ -171,6 +172,7 @@ export class CodexAppServerClient {
     this.earlyEvents = new Map();
     this.seatThreads = new Map();
     this.readyPromise = null;
+    this.availableModels = [];
     this.closed = false;
     this.stats = { turns: 0, inputTokens: 0, outputTokens: 0 };
   }
@@ -210,6 +212,8 @@ export class CodexAppServerClient {
     try {
       this.logger({
         event: 'codex-turn',
+        model: typeof record?.model === 'string' ? record.model : '',
+        effort: typeof record?.effort === 'string' ? record.effort : '',
         seatIndex: Number.isInteger(record?.seatIndex) ? record.seatIndex : null,
         phase: typeof record?.phase === 'string' ? record.phase : '',
         calls: Number(record?.calls || 0),
@@ -265,12 +269,13 @@ export class CodexAppServerClient {
       const models = await this.request('model/list', { includeHidden: true, limit: 100, cursor }, this.rpcTimeoutMs);
       const pageItems = Array.isArray(models?.data) ? models.data : [];
       listed.push(...pageItems);
-      if (pageItems.some((entry) => modelEntryMatches(entry, CODEX_MODEL))) break;
+      if (MODEL_PRESETS.every((preset) => listed.some((entry) => modelEntryMatches(entry, preset.model)))) break;
       const nextCursor = typeof models?.nextCursor === 'string' && models.nextCursor ? models.nextCursor : null;
       if (!nextCursor || nextCursor === cursor) break;
       cursor = nextCursor;
     }
-    if (!listed.some((entry) => modelEntryMatches(entry, CODEX_MODEL))) {
+    this.availableModels = listed;
+    if (!listed.length) {
       throw safeProviderError('Configured Codex model is unavailable', { code: 'CODEX_MODEL_UNAVAILABLE' });
     }
     return { ok: true, model: CODEX_MODEL, effort: CODEX_EFFORT, modelCount: listed.length };
@@ -440,17 +445,25 @@ export class CodexAppServerClient {
     try { this.child.stdin.write(`${JSON.stringify({ method, params })}\n`); } catch { /* process exit handles state */ }
   }
 
-  async runTurn({ text, outputSchema = ACTION_SCHEMA, timeoutMs = this.timeoutMs, developerInstructions = null, sessionKey = null } = {}) {
+  async runTurn({ text, outputSchema = ACTION_SCHEMA, timeoutMs = this.timeoutMs, developerInstructions = null, sessionKey = null, model = CODEX_MODEL, effort = modelPreset(model)?.effort || CODEX_EFFORT } = {}) {
+    const preset = modelPreset(model);
+    if (!preset || preset.effort !== effort) throw safeProviderError('Unknown model preset', { code: 'CODEX_MODEL_INVALID' });
     await this.ready();
+    const catalogEntry = this.availableModels.find((entry) => modelEntryMatches(entry, model));
+    if (!catalogEntry) throw safeProviderError('Selected model is unavailable', { code: 'CODEX_MODEL_UNAVAILABLE' });
+    const supported = catalogEntry.supportedReasoningEfforts || catalogEntry.supported_reasoning_levels;
+    if (Array.isArray(supported) && supported.length && !supported.some((entry) => (entry.reasoningEffort || entry.effort) === effort)) {
+      throw safeProviderError('Selected reasoning level is unavailable', { code: 'CODEX_EFFORT_UNAVAILABLE' });
+    }
     const previous = sessionKey ? this.seatThreads.get(sessionKey) : null;
-    const reusable = previous && !previous.busy && previous.developerInstructions === developerInstructions;
+    const reusable = previous && !previous.busy && previous.developerInstructions === developerInstructions && previous.model === model && previous.effort === effort;
     let threadId = reusable ? previous.threadId : null;
     if (reusable) previous.busy = true;
     else if (previous && !previous.busy) this.releaseThread(previous.threadId);
     try {
       if (!threadId) {
         const thread = await this.request('thread/start', {
-          model: CODEX_MODEL,
+          model,
           cwd: this.cwd,
           approvalPolicy: 'never',
           sandbox: 'read-only',
@@ -466,21 +479,21 @@ export class CodexAppServerClient {
           },
         }, Math.min(this.rpcTimeoutMs, timeoutMs));
         const selectedModel = String(thread?.model || thread?.thread?.model || '');
-        if (selectedModel !== CODEX_MODEL) {
+        if (selectedModel !== model) {
           throw safeProviderError('Codex app-server selected an unexpected model', { code: 'CODEX_MODEL_MISMATCH' });
         }
         threadId = String(thread?.thread?.id || thread?.id || '');
         if (!threadId) throw safeProviderError('Codex thread did not return an id', { code: 'CODEX_PROTOCOL_ERROR' });
         if (sessionKey) {
           this.trimSeatThreads();
-          this.seatThreads.set(sessionKey, { threadId, developerInstructions, busy: true });
+          this.seatThreads.set(sessionKey, { threadId, developerInstructions, model, effort, busy: true });
         }
       }
       const started = await this.request('turn/start', {
         threadId,
         input: [{ type: 'text', text: String(text || ''), text_elements: [] }],
-        model: CODEX_MODEL,
-        effort: CODEX_EFFORT,
+        model,
+        effort,
         approvalPolicy: 'never',
         cwd: this.cwd,
         sandboxPolicy: { type: 'readOnly', networkAccess: false },
@@ -598,6 +611,8 @@ export function createCodexProvider(options = {}) {
       sessions.set(seatIndex, session);
     }
     session.round = Number(view.state.round);
+    const preset = modelPreset(ai.model || CODEX_MODEL);
+    if (!preset) throw safeProviderError('Unknown model preset', { code: 'CODEX_MODEL_INVALID' });
     const messages = buildMessages(ai || {}, view);
     const messagesFor = (correction = '') => correction
       ? buildMessages(ai || {}, view, correction).user
@@ -611,6 +626,8 @@ export function createCodexProvider(options = {}) {
         return await client.runTurn({
           text: messagesFor(correction),
           sessionKey: session.key,
+          model: preset.model,
+          effort: preset.effort,
           outputSchema: actionSchemaFor(phase),
           developerInstructions: messages.system,
           timeoutMs: options.timeoutMs ?? options.turnTimeoutMs ?? DEFAULT_CODEX_TIMEOUT_MS,
@@ -626,7 +643,7 @@ export function createCodexProvider(options = {}) {
       result = await run();
     } catch (error) {
       error.calls = Math.max(Number(error?.calls || 0), calls);
-      log?.({ event: 'codex-turn-error', seatIndex, phase, calls, latencyMs: Date.now() - startedAt, code: error.code || 'CODEX_ERROR' });
+      log?.({ event: 'codex-turn-error', seatIndex, phase, model: preset.model, effort: preset.effort, calls, latencyMs: Date.now() - startedAt, code: error.code || 'CODEX_ERROR' });
       throw error;
     }
     try {
@@ -634,7 +651,7 @@ export function createCodexProvider(options = {}) {
       const usage = result?.tokenUsage || {};
       const last = usage.last || usage;
       client.emitLog?.({
-        seatIndex, phase, calls, latencyMs: Date.now() - startedAt,
+        seatIndex, phase, model: preset.model, effort: preset.effort, calls, latencyMs: Date.now() - startedAt,
         inputTokens: last.inputTokens ?? last.input_tokens,
         outputTokens: last.outputTokens ?? last.output_tokens,
         cachedInputTokens: last.cachedInputTokens ?? last.cached_input_tokens,
@@ -647,7 +664,7 @@ export function createCodexProvider(options = {}) {
       try {
         repair = await run(firstError.message);
       } catch (error) {
-        log?.({ event: 'codex-turn-error', seatIndex, phase, calls, latencyMs: Date.now() - startedAt, code: error.code || 'CODEX_ERROR' });
+        log?.({ event: 'codex-turn-error', seatIndex, phase, model: preset.model, effort: preset.effort, calls, latencyMs: Date.now() - startedAt, code: error.code || 'CODEX_ERROR' });
         throw error;
       }
       try {
@@ -655,7 +672,7 @@ export function createCodexProvider(options = {}) {
         const usage = repair?.tokenUsage || {};
         const last = usage.last || usage;
         client.emitLog?.({
-          seatIndex, phase, calls, latencyMs: Date.now() - startedAt,
+          seatIndex, phase, model: preset.model, effort: preset.effort, calls, latencyMs: Date.now() - startedAt,
           inputTokens: last.inputTokens ?? last.input_tokens,
           outputTokens: last.outputTokens ?? last.output_tokens,
           cachedInputTokens: last.cachedInputTokens ?? last.cached_input_tokens,

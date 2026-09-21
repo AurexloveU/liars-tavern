@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createGameServer } from './server.js';
@@ -15,11 +16,16 @@ export async function createLocalCodexServer(options = {}) {
     ...options.codexOptions,
   });
   const external = createAIProvider();
+  const identityFile = path.join(path.dirname(fileURLToPath(import.meta.url)), 'public', 'model-names.json');
+  const modelNames = options.modelNames || (fs.existsSync(identityFile) ? JSON.parse(fs.readFileSync(identityFile, 'utf8')).profiles : {});
   const server = createGameServer({
     host: '127.0.0.1', port,
     soloMode: true,
     soloStatePath: options.soloStatePath || path.join(path.dirname(fileURLToPath(import.meta.url)), 'ops', 'codex-runtime', 'solo-state.json'),
     allowCodex: true,
+    modelNames,
+    recordsPath: options.recordsPath,
+    aiRoster: ['gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.6-terra'],
     aiDefaults: { protocol: 'codex', model: 'gpt-5.6-luna' },
     // Give a first-time player time to read the cards and controls.
     durations: { turnMs: 300_000, triggerMs: 60_000, aiDelayMinMs: 0, aiDelayMaxMs: 0 },
@@ -51,7 +57,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
   createLocalCodexServer().then(async (value) => {
     server = value;
     const address = await server.listen();
-    console.log(`Codex Liar's Tavern ready: http://127.0.0.1:${address.port} (3 × gpt-5.6-luna, max)`);
+    console.log(`Codex Liar's Tavern ready: http://127.0.0.1:${address.port} (Astra medium / Sol high / Terra xhigh / Luna max)`);
     for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => {
       await server.close();
       process.exit(0);

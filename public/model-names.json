@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "profiles": {
+    "astra": {
+      "id": "astra",
+      "model": "gpt-6-astra",
+      "effort": "medium",
+      "label": "Astra · medium",
+      "name": "赊月客",
+      "chosenByModel": true,
+      "createdAt": "2026-09-21T03:05:55.782Z"
+    },
+    "sol": {
+      "id": "sol",
+      "model": "gpt-5.6-sol",
+      "effort": "high",
+      "label": "Sol · high",
+      "name": "烬杯狐",
+      "chosenByModel": true,
+      "createdAt": "2026-09-21T03:06:02.414Z"
+    },
+    "terra": {
+      "id": "terra",
+      "model": "gpt-5.6-terra",
+      "effort": "xhigh",
+      "label": "Terra · xhigh",
+      "name": "雾骰郎",
+      "chosenByModel": true,
+      "createdAt": "2026-09-21T03:06:08.912Z"
+    },
+    "luna": {
+      "id": "luna",
+      "model": "gpt-5.6-luna",
+      "effort": "max",
+      "label": "Luna · max",
+      "name": "醉月鸦",
+      "chosenByModel": true,
+      "createdAt": "2026-09-21T03:06:16.571Z"
+    }
+  }
+}

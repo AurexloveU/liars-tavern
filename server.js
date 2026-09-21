@@ -1,3 +1,5 @@
+import { PlayerRecords } from './player-records.js';
+import { MODEL_PRESETS } from './public/model-presets.js';
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -50,6 +52,7 @@ function roomHostConfig(room) {
     seatIndex: seat.seatIndex,
     baseUrl: seat.ai.baseUrl,
     model: seat.ai.model,
+    effort: seat.ai.effort,
     protocol: seat.ai.protocol,
     tokenLimitField: seat.ai.tokenLimitField,
     maxOutputTokens: seat.ai.maxOutputTokens,
@@ -106,6 +109,11 @@ export function createGameServer(options = {}) {
     timeoutMs: options.aiTimeoutMs || 25_000,
   });
   const sessions = new Map();
+  const records = soloMode ? new PlayerRecords(options.recordsPath || (soloStatePath ? path.join(path.dirname(soloStatePath), 'player-records.json') : null)) : null;
+  if (soloMode) {
+    app.get('/api/player-records', (_req, res) => res.json(records.summary()));
+    app.get('/api/model-players', (_req, res) => res.json({ players: MODEL_PRESETS.map((preset) => ({ ...preset, name: options.modelNames?.[preset.id]?.name || preset.label })) }));
+  }
   const sweepEvery = Number(options.sweepEvery || 250);
 
   function stateFor(room, session) {
@@ -113,7 +121,7 @@ export function createGameServer(options = {}) {
     const isSoloRoom = soloMode && room === soloRoom;
     state.soloMode = isSoloRoom;
     state.paused = isSoloRoom ? Boolean(room.soloPaused) : false;
-    if (isSoloRoom) state.code = null;
+    if (isSoloRoom) { state.code = null; state.playerRecords = records.summary(); }
     state.isHost = isSoloRoom ? Boolean(session) : Boolean(session?.isHost);
     if (session?.isHost || isSoloRoom) state.hostConfigs = roomHostConfig(room);
     return state;
@@ -147,6 +155,7 @@ export function createGameServer(options = {}) {
 
   function attachRoom(room) {
     room.onState = (target) => {
+      if (soloMode) records.observe(target);
       persistSoloRoom(target);
       emitState(target);
     };
@@ -182,6 +191,7 @@ export function createGameServer(options = {}) {
     let code;
     do code = randomRoomCode(); while (rooms.has(code));
     const room = new LiarRoom({
+      modelNames: options.modelNames,
       code,
       host: { ...profile, connected: true },
       autoTimers: options.autoTimers,
@@ -198,6 +208,7 @@ export function createGameServer(options = {}) {
   function createSoloRoom(profile, previousRoom = null) {
     if (!soloMode) throw new Error('solo mode unavailable');
     const room = new LiarRoom({
+      modelNames: options.modelNames,
       code: soloRoomCode,
       host: { ...profile, connected: true },
       autoTimers: options.autoTimers,
@@ -211,6 +222,12 @@ export function createGameServer(options = {}) {
     // A "new game" resets rules and hidden state but keeps the local AI
     // settings the host already entered.  Codex has no secret key; for the
     // normal-compatible path configureAI remains responsible for validation.
+    if (!previousRoom && Array.isArray(options.aiRoster)) {
+      for (let index = 0; index < 3; index++) {
+        const model = options.aiRoster[index];
+        if (model) room.configureAI({ isHost: true, seatIndex: 0 }, { seatIndex: index + 1, protocol: 'codex', model });
+      }
+    }
     if (previousRoom) {
       const hostActor = { isHost: true, seatIndex: 0, token: room.hostToken, profile };
       for (const prior of previousRoom.players.filter((seat) => seat.kind === 'ai')) {
@@ -233,6 +250,7 @@ export function createGameServer(options = {}) {
       }
     }
     soloRoom = room;
+    records?.observe(room);
     persistSoloRoom(room);
     return room;
   }
@@ -277,6 +295,7 @@ export function createGameServer(options = {}) {
     }
     try {
       const room = new LiarRoom({
+        modelNames: options.modelNames,
         code: soloRoomCode,
         autoTimers: options.autoTimers,
         durations: options.durations,

@@ -1,10 +1,12 @@
+import { MODEL_PRESETS, modelPreset } from './model-presets.js';
 import { setupBackgroundMusic } from './music.js';
 import { createCardCallouts } from './card-callouts.js?v=gold-claims-1';
 
 const $ = (id) => document.getElementById(id);
 
 const PREFS_KEY = 'liars-tavern:prefs';
-const CODEX_MODEL = 'gpt-5.6-luna';
+let modelPlayers = MODEL_PRESETS.map((preset) => ({ ...preset, name: preset.label }));
+let speechTimer = null;
 const savedPrefs = readStorage(PREFS_KEY) || {};
 const SOUND_PREFS_KEY = 'liars-tavern:sound';
 const savedSoundPrefs = readStorage(SOUND_PREFS_KEY) || {};
@@ -164,7 +166,7 @@ function kindLabel(kind) {
 }
 
 function aiSeatLabel(ai) {
-  return ai?.protocol === 'codex' ? 'Codex' : (ai?.model || '待配置');
+  return ai?.protocol === 'codex' ? (modelPreset(ai.model)?.label || 'Codex') : (ai?.model || '待配置');
 }
 
 function rankLabel(rank) {
@@ -208,6 +210,8 @@ function renderSeatHud() {
   const hud = $('seat-hud');
   const state = currentState;
   hud.replaceChildren();
+  clearTimeout(speechTimer);
+  let nextSpeechExpiry = Infinity;
   const inSolo = Boolean(state?.soloMode || state?.singleplayer);
   if (!inSolo || state.phase === 'lobby') {
     hud.hidden = true;
@@ -235,6 +239,15 @@ function renderSeatHud() {
       ? `手牌 0 · 空枪 ${player.shots || 0}/6 · 已淘汰`
       : `手牌 ${player.handCount || 0} · 轮盘 ${player.shots || 0}/6 · 下一次 ${riskLabel(player.nextRisk)}`;
     badge.append(name, kind, stats);
+    const remaining = (player.speech?.createdAt || 0) + 8000 - Date.now();
+    if (player.speech?.text && remaining > 0) {
+      const bubble = document.createElement('span');
+      bubble.className = 'seat-speech';
+      bubble.textContent = Array.from(player.speech.text).slice(0, 20).join('');
+      bubble.setAttribute('role', 'status');
+      badge.append(bubble);
+      nextSpeechExpiry = Math.min(nextSpeechExpiry, remaining);
+    }
     if (player.ai?.error) {
       const error = document.createElement('span');
       error.className = 'seat-badge-error';
@@ -254,6 +267,39 @@ function renderSeatHud() {
     }
     hud.append(badge);
   }
+  if (Number.isFinite(nextSpeechExpiry)) speechTimer = setTimeout(renderSeatHud, nextSpeechExpiry + 30);
+}
+
+function renderPlayerRecords(records) {
+  const body = $('records-body');
+  body.replaceChildren();
+  const players = records.players || [];
+  $('records-empty').hidden = players.length > 0;
+  $('records-error').textContent = records.error || '';
+  $('records-error').hidden = !records.error;
+  if (records.trackingSince) $('records-note').textContent = `从 ${new Date(records.trackingSince).toLocaleDateString()} 开始记录。未结束牌局仅记参与，胜率按已结算牌局计算。`;
+  for (const player of players) {
+    const row = document.createElement('tr');
+    const label = document.createElement('td');
+    const name = document.createElement('strong');
+    name.textContent = player.name;
+    const model = document.createElement('small');
+    model.textContent = player.model;
+    label.append(name, model);
+    row.append(label);
+    for (const value of [player.joined, player.played, player.wins, player.losses, player.winRate == null ? '—' : `${player.winRate}%`]) {
+      const cell = document.createElement('td'); cell.textContent = String(value); row.append(cell);
+    }
+    body.append(row);
+  }
+}
+
+async function loadPlayerRecords() {
+  try {
+    const response = await fetch('./api/player-records', { cache: 'no-store' });
+    if (!response.ok) throw new Error('records unavailable');
+    renderPlayerRecords(await response.json());
+  } catch { $('records-error').textContent = '战绩暂未加载，请稍后刷新。'; $('records-error').hidden = false; }
 }
 
 function renderAiSeatPicker() {
@@ -264,7 +310,7 @@ function renderAiSeatPicker() {
     const button = document.createElement('button');
     button.type = 'button';
     button.className = `ai-seat-button${seatIndex === selectedAiSeat ? ' is-active' : ''}`;
-    button.textContent = `第 ${seatIndex + 1} 席 · ${player?.kind === 'ai' ? aiSeatLabel(player.ai) : kindLabel(player?.kind || 'open')}`;
+    button.textContent = `${player?.name || `第 ${seatIndex + 1} 席`} · ${player?.kind === 'ai' ? aiSeatLabel(player.ai) : kindLabel(player?.kind || 'open')}`;
     button.disabled = player?.kind !== 'ai';
     button.addEventListener('click', () => { selectedAiSeat = seatIndex; renderAiSeatPicker(); fillAiSettings(); });
     picker.append(button);
@@ -290,11 +336,13 @@ function syncCodexSettings() {
   $('ai-max-output').disabled = isCodex;
   $('ai-max-output-field').hidden = isCodex;
   model.disabled = isCodex;
+  $('ai-model-field').hidden = isCodex;
+  $('codex-preset-field').hidden = !isCodex;
   if (baseField) baseField.hidden = isCodex;
   if (keyField) keyField.hidden = isCodex;
   if (clearKeyField) clearKeyField.hidden = isCodex;
   $('codex-help').hidden = !isCodex;
-  if (isCodex) model.value = CODEX_MODEL;
+  if (isCodex) model.value = modelPreset($('codex-preset').value)?.model || 'gpt-5.6-luna';
 }
 
 function fillAiSettings() {
@@ -305,6 +353,7 @@ function fillAiSettings() {
     : {};
   $('ai-base-url').value = hostConfig.baseUrl || ai.baseUrl || '';
   $('ai-model').value = hostConfig.model || ai.model || '';
+  $('codex-preset').value = modelPreset(hostConfig.model || ai.model)?.id || 'luna';
   $('ai-protocol').value = hostConfig.protocol || ai.protocol || 'chat';
   $('ai-max-output').value = String(hostConfig.maxOutputTokens ?? ai.maxOutputTokens ?? 4096);
   $('ai-key').value = '';
@@ -319,6 +368,7 @@ function openSettings(seatIndex = selectedAiSeat) {
   renderAiSeatPicker();
   fillAiSettings();
   showDialog($('settings-dialog'));
+  void loadPlayerRecords();
 }
 
 function aiPayload() {
@@ -327,7 +377,7 @@ function aiPayload() {
   const isCodex = protocol === 'codex';
   return {
     baseUrl: isCodex ? '' : $('ai-base-url').value.trim(),
-    model: isCodex ? CODEX_MODEL : $('ai-model').value.trim(),
+    model: isCodex ? modelPreset($('codex-preset').value).model : $('ai-model').value.trim(),
     protocol,
     maxOutputTokens,
     apiKey: isCodex ? '' : $('ai-key').value,
@@ -477,7 +527,8 @@ function renderState(rawState) {
   cardCallouts?.observe(state);
   currentState = state;
   syncCodexSettings();
-  if (Number.isInteger(state.selfSeat)) selectedAiSeat = state.selfSeat === 0 ? 1 : selectedAiSeat;
+  if (playerAt(selectedAiSeat)?.kind !== 'ai') selectedAiSeat = state.players?.find((player) => player.kind === 'ai')?.seatIndex ?? 1;
+  if (state.playerRecords) renderPlayerRecords(state.playerRecords);
   const inSolo = Boolean(state.soloMode || state.singleplayer);
   const paused = Boolean(state.soloPaused ?? state.paused);
   if (socket?.connected) setConnection(inSolo ? (paused ? '已连接 · 单机牌局已暂停' : '已连接 · 本机牌局 · AI 通过网络') : '已连接 · 可以开始单机牌局', 'good');
@@ -663,6 +714,26 @@ function setupUi() {
   $('settings-button').addEventListener('click', () => openSettings(selectedAiSeat));
   $('settings-close').addEventListener('click', () => closeDialog($('settings-dialog')));
   $('ai-protocol').addEventListener('change', syncCodexSettings);
+  $('codex-preset').addEventListener('change', syncCodexSettings);
+  $('records-refresh').addEventListener('click', loadPlayerRecords);
+  for (const tab of document.querySelectorAll('[data-settings-tab]')) {
+    tab.addEventListener('click', () => {
+      for (const other of document.querySelectorAll('[data-settings-tab]')) {
+        const active = other === tab;
+        other.setAttribute('aria-selected', String(active));
+        $(`settings-${other.dataset.settingsTab}-panel`).hidden = !active;
+      }
+      if (tab.dataset.settingsTab === 'records') void loadPlayerRecords();
+    });
+  }
+  fetch('./api/model-players', { cache: 'no-store' }).then((response) => response.json()).then((data) => {
+    if (!Array.isArray(data.players)) return;
+    modelPlayers = data.players;
+    for (const option of $('codex-preset').options) {
+      const player = modelPlayers.find((entry) => entry.id === option.value);
+      if (player) option.textContent = `${player.name} · ${player.label}`;
+    }
+  }).catch(() => {});
   $('solo-pause-button').addEventListener('click', toggleSoloPause);
   $('sound-toggle').addEventListener('click', () => {
     soundEnabled = !soundEnabled;
