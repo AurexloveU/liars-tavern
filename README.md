@@ -1,0 +1,63 @@
+# 骗子酒馆 · 本机单人版
+
+一个真人与三个大语言模型对局。选好角色后点击“开始单机牌局”，直接发牌，第一手由真人行动。没有房间号、邀请链接或加入房间步骤。
+
+游戏规则、随机发牌、轮盘结果、图片、声音、手牌状态和存档都在本机处理；只有模型决策需要互联网。单机服务仅监听 127.0.0.1。不开启外部多人入口。
+
+## 启动
+
+需要 Node.js 20.18.1 或更新版本。下载完整仓库后安装依赖：
+
+```sh
+git clone https://github.com/AurexloveU/liars-tavern.git
+cd liars-tavern
+npm ci
+npm start
+```
+
+打开 http://127.0.0.1:3280/ 。直接打开 public/index.html 会跳到这个入口。不要把 HTML 源文件当成联网游戏页面。
+
+默认 AI 使用本机已登录的 Codex app-server，模型为 gpt-5.6-luna，思考档位 max，不需要另外填写 API key。Codex 在 AI 回合才连接；模型连接失败会显示重试，不会偷偷使用规则机器人代替。游戏设置仍可切换到自己的模型接口。
+
+在其他电脑上使用 Codex 模式时，先登录当地安装的 Codex，并通过 `LIARS_CODEX_BIN` 指定实际可执行文件路径；当前代码的默认路径来自原开发电脑。例如已安装在命令行中的 Codex：
+
+```sh
+LIARS_CODEX_BIN="$(command -v codex)" npm start
+```
+
+使用自备模型接口时，在游戏设置里填写接口地址、模型和密钥。仓库不附带账号凭据、API 密钥或个人存档。
+
+## 源码与素材
+
+- 根目录的 JavaScript：游戏规则、本机服务、模型接口和 Codex 玩家。
+- `public/`：完整前端、桌面与角色图片、卡牌、金色报牌字样、配乐和音效。
+- `public/assets/art-v3/`：当前使用的全部游戏美术素材；生成记录见 `docs/art-v3-generation.json`。
+- `public/assets/ui/`：生图生成的报牌字样；提示词见 `docs/card-callout-art-v1.md`。
+- `public/assets/audio/`：落牌音效；生成脚本在 `ops/generate-card-place.py`。
+- `public/assets/music/`：背景配乐及作者、授权署名文件 `CREDITS.md`。
+- `public/assets/voices/`：保留的旧报牌语音素材，当前游戏已停用。
+- `test/`、`docs/`、`ops/`：已有测试代码、说明、素材生成与部署脚本。
+- `archive/`、`ops/before-solo/`：保留的历史版本源码。
+
+当前出牌提示使用淡金色字样和落牌音效，不播放念牌语音。仓库包含全部源码与素材；依赖由 `npm ci` 根据锁文件恢复。
+
+`ops/` 中部署配置与验收文档保留原项目记录；上传到 GitHub 不表示已部署网页，也不表示最近的界面改动重新做过测试。
+
+## 操作与保存
+
+- 点选 1～3 张手牌，再点击“出这 N 张”或按 Enter；按 X 质疑上一手。
+- 真人回合没有倒计时，也不会自动替真人出牌或扣扳机。
+- 右上角“暂停 / 继续”控制本机牌局；关闭页面后暂停。刷新或新标签页自动找回本机唯一牌局，暂停状态保持。
+- 本机存档在 ops/codex-runtime/solo-state.json，文件权限 0600。服务重启后从存档恢复，并保持暂停。
+- 存档不保存外部 API 密钥；它们只在当前进程内存中。Codex 登录凭据仍由 Codex 自身管理，不写入游戏存档。
+- 淘汰或牌局结束后可“再来一局”。每个 AI 只收到自己的手牌和公开信息。
+
+## 验证
+
+```sh
+npm test
+```
+
+自动测试使用隔离的模型替身验证游戏协议，不调用真实模型。ops/solo-ui-probe.mjs 是临时 UI 测试入口（3281），不用于正式游玩。正常入口始终为 npm start / 3280。
+
+旧多人服务实现和规则回归仍保留，历史说明见 docs/multiplayer-readme-archive.md；当前默认入口为本机单人模式。

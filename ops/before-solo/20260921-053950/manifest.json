@@ -1,0 +1,26 @@
+[
+  {
+    "path": "game.js",
+    "sha256": "de8f930486a7f6502aa95d3c3d68f900524f05d7cc9def3d51e8f84e10242eed"
+  },
+  {
+    "path": "server.js",
+    "sha256": "1aafbd80802865ede57994636a0ccc4ed9033dc1bad5c8d949af766eba951d85"
+  },
+  {
+    "path": "codex-server.js",
+    "sha256": "1f5e51a5ea441553237f9c003218d3db1827df8339401b06c09231949387b09d"
+  },
+  {
+    "path": "public/app.js",
+    "sha256": "8e453bcc2110aed9b8b53accadb931b1bf3ad8938d8119fb2e3b174e1c48a03a"
+  },
+  {
+    "path": "public/index.html",
+    "sha256": "5a5fda464892877922e311b28397305fc1ef7d564610c0e65cd9c019c3a517c7"
+  },
+  {
+    "path": "public/styles.css",
+    "sha256": "5292426d8a09cc6b8c7ac3324a48117e3092b80a4e7ccdaf48acfe3ae5c0cddd"
+  }
+]

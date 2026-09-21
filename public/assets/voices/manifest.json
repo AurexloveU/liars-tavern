@@ -1,0 +1,131 @@
+{
+  "source": "Local macOS speech synthesis; not Steam audio",
+  "clips": [
+    {
+      "file": "male/a-1.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "One ace.",
+      "bytes": 31844
+    },
+    {
+      "file": "male/a-2.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Two aces.",
+      "bytes": 40360
+    },
+    {
+      "file": "male/a-3.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Three aces.",
+      "bytes": 45252
+    },
+    {
+      "file": "male/k-1.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "One king.",
+      "bytes": 35942
+    },
+    {
+      "file": "male/k-2.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Two kings.",
+      "bytes": 38824
+    },
+    {
+      "file": "male/k-3.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Three kings.",
+      "bytes": 43716
+    },
+    {
+      "file": "male/q-1.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "One queen.",
+      "bytes": 39526
+    },
+    {
+      "file": "male/q-2.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Two queens.",
+      "bytes": 44456
+    },
+    {
+      "file": "male/q-3.wav",
+      "gender": "male",
+      "voice": "Daniel",
+      "phrase": "Three queens.",
+      "bytes": 49348
+    },
+    {
+      "file": "female/a-1.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "One ace.",
+      "bytes": 33378
+    },
+    {
+      "file": "female/a-2.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Two aces.",
+      "bytes": 39420
+    },
+    {
+      "file": "female/a-3.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Three aces.",
+      "bytes": 44608
+    },
+    {
+      "file": "female/k-1.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "One king.",
+      "bytes": 33890
+    },
+    {
+      "file": "female/k-2.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Two kings.",
+      "bytes": 35324
+    },
+    {
+      "file": "female/k-3.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Three kings.",
+      "bytes": 39488
+    },
+    {
+      "file": "female/q-1.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "One queen.",
+      "bytes": 37474
+    },
+    {
+      "file": "female/q-2.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Two queens.",
+      "bytes": 38908
+    },
+    {
+      "file": "female/q-3.wav",
+      "gender": "female",
+      "voice": "Samantha",
+      "phrase": "Three queens.",
+      "bytes": 43072
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#0b1110">
+    <title>骗子酒馆 · Liar's Deck</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="app-shell" class="app-shell">
+      <div id="scene-root" class="scene-root" aria-label="2D 酒馆牌桌"></div>
+      <div class="vignette" aria-hidden="true"></div>
+      <div id="seat-hud" class="seat-hud" hidden aria-label="桌边座位状态"></div>
+
+      <header class="topbar">
+        <div class="brand-lockup">
+          <span class="brand-mark" aria-hidden="true">♠</span>
+          <div>
+            <h1>骗子酒馆</h1>
+            <p>LIAR'S DECK · 2D 四人牌局</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span id="phase-chip" class="phase-chip">大厅</span>
+          <span id="room-chip" class="room-chip" hidden>房间 <b>----</b></span>
+          <button id="leave-button" class="icon-button" type="button" aria-label="离开房间" title="离开房间" hidden>↩</button>
+          <button id="sound-toggle" class="icon-button" type="button" aria-pressed="false" aria-label="开启音效" title="开启音效">♬</button>
+          <button id="rules-button" class="icon-button" type="button" aria-label="打开规则" title="规则">?</button>
+          <button id="settings-button" class="icon-button" type="button" aria-label="打开设置" title="设置">⚙</button>
+        </div>
+      </header>
+
+      <div id="connection-banner" class="connection-banner" role="status" aria-live="polite">正在连接桌面……</div>
+      <div id="orientation-hint" class="orientation-hint" role="status">横屏可见完整牌桌；竖屏也可以继续操作。</div>
+
+      <section id="lobby-panel" class="glass-panel lobby-panel" aria-label="开桌和入座">
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">桌边登记</span>
+            <h2>坐下，发牌</h2>
+          </div>
+          <span class="live-dot" title="联机状态"></span>
+        </div>
+        <div class="entry-tabs" role="tablist" aria-label="选择操作">
+          <button id="create-tab" class="tab-button is-active" type="button" role="tab" aria-selected="true">开一桌</button>
+          <button id="join-tab" class="tab-button" type="button" role="tab" aria-selected="false">加入房间</button>
+        </div>
+        <form id="entry-form" class="entry-form">
+          <label>
+            <span>昵称</span>
+            <input id="profile-name" name="name" maxlength="18" autocomplete="nickname" placeholder="桌边怎么称呼你" required>
+          </label>
+          <div class="field-row">
+            <label>
+              <span>性别</span>
+              <select id="profile-gender" name="gender">
+                <option value="male">男</option>
+                <option value="female">女</option>
+              </select>
+            </label>
+            <label>
+              <span>衣装</span>
+              <select id="profile-skin" name="skin">
+                <option value="0">墨蓝外套</option>
+                <option value="1">酒红马甲</option>
+              </select>
+            </label>
+          </div>
+          <label id="join-code-field" hidden>
+            <span>房间号</span>
+            <input id="join-code" name="code" inputmode="text" maxlength="8" placeholder="例如 A7K9Q2" autocomplete="off">
+          </label>
+          <button class="primary-button" type="submit"><span id="entry-submit-label">开一桌</span><span aria-hidden="true">↗</span></button>
+          <p id="entry-error" class="form-error" role="alert" hidden></p>
+          <p class="fine-print">房间号只保存在当前标签页；不要把接口密钥填在这里。</p>
+        </form>
+      </section>
+
+      <section id="room-panel" class="glass-panel room-panel" hidden aria-label="房间座位">
+        <div class="panel-heading compact">
+          <div>
+            <span class="eyebrow">房间 <b id="room-code-label">----</b></span>
+            <h2 id="room-title">等待入座</h2>
+          </div>
+          <div class="room-heading-actions">
+            <button id="copy-room-button" class="subtle-button" type="button">复制房间号</button>
+            <button id="room-collapse-button" class="subtle-button" type="button" aria-expanded="true" aria-controls="room-panel">查看桌面</button>
+          </div>
+        </div>
+        <div id="seat-list" class="seat-list"></div>
+        <div id="host-tools" class="host-tools" hidden>
+          <div class="host-tools-heading">
+            <span>房主操作</span>
+            <span id="lobby-readiness" class="readiness-text">等待玩家</span>
+          </div>
+          <button id="start-button" class="primary-button" type="button" disabled>开始牌局</button>
+          <p id="start-help" class="fine-print">至少需要四个已配置的座位。</p>
+        </div>
+        <p id="room-error" class="form-error" role="alert" hidden></p>
+      </section>
+      <button id="room-toggle-button" class="subtle-button room-toggle-button" type="button" aria-expanded="false" aria-controls="room-panel" hidden>座位设置</button>
+
+      <aside id="table-inspector" class="glass-panel table-inspector" hidden aria-label="牌局信息">
+        <div class="inspector-line"><span>本轮牌型</span><b id="target-rank">—</b></div>
+        <div class="inspector-line"><span>牌堆</span><b><span id="pile-count">0</span> 张</b></div>
+        <div class="inspector-line"><span>轮到</span><b id="turn-label">等待发牌</b></div>
+        <div id="last-play-line" class="inspector-note" hidden></div>
+        <div id="reveal-callout" class="reveal-callout" hidden></div>
+        <div id="must-challenge" class="challenge-callout" hidden>你可以质疑上一手</div>
+        <div id="thinking-line" class="thinking-line" hidden><span class="thinking-pulse"></span><span id="thinking-label">AI 正在思考……</span></div>
+      </aside>
+
+      <aside id="event-panel" class="glass-panel event-panel" hidden aria-label="公开记录">
+        <div class="panel-heading compact"><div><span class="eyebrow">桌边记录</span><h2>公开对白</h2></div></div>
+        <div id="event-list" class="event-list" aria-live="polite"></div>
+      </aside>
+
+      <section id="hand-panel" class="hand-panel" hidden aria-label="你的手牌和操作">
+        <div class="hand-heading">
+          <div><span class="eyebrow">你的手牌</span><b id="hand-hint">选 1–3 张出牌</b></div>
+          <span id="hand-count-label" class="hand-count-label">0 张</span>
+        </div>
+        <div id="hand-list" class="hand-list"></div>
+        <div class="action-dock">
+          <button id="play-button" class="primary-button action-button" type="button" disabled><span>出牌</span><kbd>Enter</kbd></button>
+          <button id="challenge-button" class="secondary-button action-button" type="button" disabled><span>质疑</span><kbd>X</kbd></button>
+          <button id="trigger-button" class="danger-button action-button" type="button" disabled><span>扣扳机</span><kbd>Space</kbd></button>
+        </div>
+        <p id="action-help" class="action-help">等待你的回合……</p>
+      </section>
+
+      <div id="dead-overlay" class="dead-overlay" role="status" aria-live="polite" hidden>
+        <strong id="dead-title">你已淘汰，可继续旁观</strong>
+        <p id="dead-copy"></p>
+        <button id="restart-button" class="primary-button" type="button" hidden>再来一局</button>
+      </div>
+
+      <dialog id="rules-dialog" class="modal-dialog">
+        <form method="dialog" class="modal-card">
+          <button class="modal-close" value="close" aria-label="关闭规则">×</button>
+          <span class="eyebrow">LIAR'S DECK</span>
+          <h2>四人经典规则</h2>
+          <ol class="rules-list">
+            <li>轮到你时，可以自由选择 1–3 张牌背面朝上打出；牌型可以诚实，也可以诈唬。</li>
+            <li>你可以相信上一手，也可以质疑。质疑后翻开上一手，撒谎的人承担轮盘风险；误质疑则由质疑者承担。</li>
+            <li>JOKER 可作为通配牌。桌上只剩一名仍持有牌的玩家时，必须质疑上一手。</li>
+            <li>轮盘风险从 1/6 逐步升高，扣下扳机后会公开结果；出局座位留下血泊。</li>
+            <li>活到最后的人获胜。AI 会根据自己的手牌和公开记录做出决定。</li>
+          </ol>
+          <p class="fine-print">键盘：1–5 选牌 · Enter 出牌 · X 质疑 · Space 扣扳机。</p>
+        </form>
+      </dialog>
+
+      <dialog id="settings-dialog" class="modal-dialog">
+        <form id="settings-form" class="modal-card settings-card">
+          <button id="settings-close" class="modal-close" type="button" aria-label="关闭设置">×</button>
+          <span class="eyebrow">桌面设置</span>
+          <h2>AI 席位与偏好</h2>
+          <p class="modal-intro">外部 AI 席位使用自己的接口。密钥只随一次配置动作发送，不回显、不写入浏览器；Codex 席位使用当前 Codex 登录。</p>
+          <div id="ai-seat-picker" class="ai-seat-picker"></div>
+          <div class="settings-grid">
+            <label id="ai-base-url-field"><span>Base URL</span><input id="ai-base-url" type="url" placeholder="https://api.example.com/v1"></label>
+            <label id="ai-model-field"><span>模型名</span><input id="ai-model" type="text" placeholder="gpt-5.6-luna"></label>
+            <label><span>协议</span><select id="ai-protocol"><option value="chat">OpenAI 兼容 · chat</option><option value="responses">OpenAI · responses</option><option value="anthropic">Anthropic · messages</option><option id="ai-protocol-codex" value="codex" hidden>Codex · 本机登录</option></select></label>
+            <label id="ai-key-field"><span>API key</span><input id="ai-key" type="password" autocomplete="new-password" placeholder="留空保留已有密钥"></label>
+            <label id="ai-max-output-field"><span>每次回答上限（tokens）</span><input id="ai-max-output" type="number" min="256" max="32768" step="1" value="4096" inputmode="numeric"><small class="field-help">包含模型思考用量；较大可能增加用量。</small></label>
+          </div>
+          <label id="ai-clear-key-field" class="check-label"><input id="ai-clear-key" type="checkbox"><span>清除该席位密钥</span></label>
+          <p id="codex-help" class="field-help" hidden>本机 Codex 已登录；此席位使用 gpt-5.6-luna Max，无需 Base URL 或 API key。</p>
+          <label><span>可选性格提示词</span><textarea id="ai-persona" rows="3" placeholder="例如：谨慎、话少，偏爱观察公开记录。"></textarea></label>
+          <div class="settings-actions">
+            <button id="apply-ai-button" class="subtle-button" type="button">应用到其他 AI</button>
+            <button class="primary-button" type="submit">保存该席位</button>
+          </div>
+          <p id="settings-error" class="form-error" role="alert" hidden></p>
+        </form>
+      </dialog>
+
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+    </main>
+    <noscript>
+      <div class="no-script">
+        <div>
+          <strong>请通过本机 HTTP 入口打开牌桌。</strong>
+          <p>直接打开 file 页面会阻止模块和 Socket.IO 加载。</p>
+          <a href="http://127.0.0.1:3280/">打开 HTTP 游戏入口</a>
+        </div>
+      </div>
+    </noscript>
+    <script>
+      if (window.location.protocol === 'file:') {
+        const query = window.location.search || '';
+        const hash = window.location.hash || '';
+        window.location.replace(`http://127.0.0.1:3280/${query}${hash}`);
+      }
+    </script>
+    <script src="./socket.io/socket.io.js"></script>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

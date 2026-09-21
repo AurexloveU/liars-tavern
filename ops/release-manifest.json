@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "releaseId": "liars-tavern-20260921-v4-solo-local-draft",
+  "remoteBase": "/opt/liars-tavern",
+  "currentLink": "/opt/liars-tavern/current",
+  "service": "liars-tavern.service",
+  "listen": "127.0.0.1:3280",
+  "publicBasePath": "/tavern/",
+  "files": [
+    {
+      "path": "game.js",
+      "sha256": "7c0ce98c206a6d3d9e50a6c3f300fed404ae5b73b22c2b2c27d5752efa62167a"
+    },
+    {
+      "path": "ai.js",
+      "sha256": "ec5f0f21a7eed9de5fbfd2d630fe2a8531210715fee6c53320260aaf208e35a3"
+    },
+    {
+      "path": "bot.js",
+      "sha256": "8debf0a3fa79b7da8e939441730c8ad01d83b943672a18ac55510db82a28e8c8"
+    },
+    {
+      "path": "server.js",
+      "sha256": "7c4ed91b5207ea54ad7684781b8a16fca5db6e2acdcbe58c1a73a0d3212734e0"
+    },
+    {
+      "path": "package.json",
+      "sha256": "adfa16faf5d0366cd4580e0dbe0ea1350d184c0e4a3f3914fe33411dcd92e95b"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "7759922c0381125ea4b5ddee7da7f0b160031502fc476684d9e807a97fc0e60b"
+    },
+    {
+      "path": "public/app.js",
+      "sha256": "3f156f44354ba65550c60da77897fbb5bdac368e10e504bf19354ca0ea8d8670"
+    },
+    {
+      "path": "public/index.html",
+      "sha256": "e94e6aa7b6252ad7d16effa0bf8f9fb0138cad99ec78345d7c8c8d9c7f458b43"
+    },
+    {
+      "path": "public/scene.js",
+      "sha256": "b2d7cc1070941ac3a6250309e2e6748b0cf8a76c30b34c02f41b4d1e19073136"
+    },
+    {
+      "path": "public/styles.css",
+      "sha256": "24dbd742a2bb8df27b4bac977264522ed3af567f4f778097680e06ddb601dd5e"
+    },
+    {
+      "path": "test/ai.test.js",
+      "sha256": "5cb97d9349cd00918ed4ab186e92776aa21e917da97ecf9a33429857faeb6e28"
+    },
+    {
+      "path": "test/game.test.js",
+      "sha256": "a2b3ad935e5e5c933968fbd63d41fbf9aa437eee9e0ce8f868d41ad890f83cd3"
+    },
+    {
+      "path": "test/server.test.js",
+      "sha256": "399e4733d02194bd8c59e5c6475bf5d48b898e66d2f5212b84288f046f373160"
+    },
+    {
+      "path": "ops/systemd/liars-tavern.service",
+      "sha256": "559449924ab1261fb6763ce4def5d91bc81d8b16b9c0317ebca782b853a306c0"
+    },
+    {
+      "path": "ops/caddy/aurexaevi.xyz.tavern.caddy",
+      "sha256": "9d177d29c563127b99440a1ec8f956558d415f98c8a5053f3131bbeb033fc26e"
+    },
+    {
+      "path": "docs/deployment.md",
+      "sha256": "8705a25349d6882fa871e04bac42aeebb534ca70bd3182284dc98ebee5fa28eb"
+    },
+    {
+      "path": "README.md",
+      "sha256": "025703f3b17302bc754e8b7af93f3f0e2fd3f5d82e979ede36b8cc01d3eea1f1"
+    },
+    {
+      "path": "docs/research.md",
+      "sha256": "66de80e0aea8177608200075cc48c5144b39cb6cb32d80a54b607b709beb1794"
+    },
+    {
+      "path": "docs/acceptance.md",
+      "sha256": "0cbe71aa3e3421294eecceb655736e2fa0f461f60ee75e7716026fba24827bcf"
+    },
+    {
+      "path": "test/ai-flow.test.js",
+      "sha256": "4678fe50a7dcb7998bacc32b1e01dd194c80cfc2ee332fe8a86f91213caea6b3"
+    },
+    {
+      "path": "test/room-probe.mjs",
+      "sha256": "15e7733e427055843814e91809c9d237e93cc2cae07b33420fbdd568be2c61d9"
+    },
+    {
+      "path": "ops/package-release.sh",
+      "sha256": "9cb5ae9de83a8607104e3fd43188e45d9044963cf99c420212d90f3be2ea4b22"
+    },
+    {
+      "path": "ops/deploy-candidate.sh",
+      "sha256": "a3ae0c2fcbbd4bc80f1e98748584af9f79a6e552238afac0a6cf8663549b7f5c"
+    },
+    {
+      "path": "docs/art-v3.md",
+      "sha256": "5eb0728710da0495a3a84ee57497ded8c1ab4f50eadb4ad795ae0bbdc9679a17"
+    },
+    {
+      "path": "docs/art-v3-generation.json",
+      "sha256": "ab686d4c2b87502ff367386c363352b55e3616277e23437c23b3ac2fb51ee988"
+    },
+    {
+      "path": "public/assets/art-v3/blood.png",
+      "sha256": "a456ead356cae169ed112dcf1566beefb36b045af201b4910edb567bd0ea1a3e"
+    },
+    {
+      "path": "public/assets/art-v3/card-a.png",
+      "sha256": "cca67fc16a4d2b6ee925aacf1ac3919c9e6f7f25f5ce9373e335912a9e608709"
+    },
+    {
+      "path": "public/assets/art-v3/card-back.png",
+      "sha256": "c734b1eda2b7f07e77049309161e096ed3209f36cd97290fe173a4feb8e6bfed"
+    },
+    {
+      "path": "public/assets/art-v3/card-joker.png",
+      "sha256": "6d3bc596b2b23640654f2e9f13c6f370636a7a8b1c9e16bf4b2493b7cb390453"
+    },
+    {
+      "path": "public/assets/art-v3/card-k.png",
+      "sha256": "14f2cc08ef07211b4f9e52bd7b44d97c068bf6eb989a4bb6441f1b7360dd257a"
+    },
+    {
+      "path": "public/assets/art-v3/card-q.png",
+      "sha256": "2a3b893b957e53b4d10df9dbf1b15e02b5dabf3cf125f1614da1324e640d2957"
+    },
+    {
+      "path": "public/assets/art-v3/female-0.png",
+      "sha256": "d23b26e83fab0b72a49a24d34c50ecdcfe6bf81b2cda73755cc49ece06ef4b28"
+    },
+    {
+      "path": "public/assets/art-v3/female-1.png",
+      "sha256": "97d3e7fe1942d7650c2ce9e98d8ee80936eb7eb1ca53bb361ce5797f33107392"
+    },
+    {
+      "path": "public/assets/art-v3/male-0.png",
+      "sha256": "d96ee125cf0e7e9a063031a8eb879957c28e8ced3cfc04839d365c9d5f44c8f1"
+    },
+    {
+      "path": "public/assets/art-v3/male-1.png",
+      "sha256": "73ecd65fb777678a73e6df2bcd0b0b76ebf0060f5f391e75699a1931f3bbb795"
+    },
+    {
+      "path": "public/assets/art-v3/revolver.png",
+      "sha256": "589fccedc61b4795cb709a5494f7a147b88b41712fbf2c133f9bb6b1cf4e66a1"
+    },
+    {
+      "path": "public/assets/art-v3/table.png",
+      "sha256": "326b5e212f99cd6a26887a27853398797d05e19adc2e2f235bd712893043e119"
+    },
+    {
+      "path": "codex-provider.js",
+      "sha256": "0479ce5cf45f95b83cfaf5e44a046dfa4935a68b67a7d9f3debc60b9f6c01f98"
+    },
+    {
+      "path": "codex-server.js",
+      "sha256": "30c892e0a6cf5d1d80c67a1f6084cd4935a3fa9c3b7b0b77ef4e81aeb836bc6d"
+    },
+    {
+      "path": "test/codex-mode.test.js",
+      "sha256": "63030d0b857b324cbb5a60e654d13d8fdcb7ff0d6dc52ee4c75893e1cf3639b1"
+    },
+    {
+      "path": "test/codex-provider.test.js",
+      "sha256": "8ee66b9f46ba490931925f0f64fd81fecfeeeb13037f238297df3f061064f6c2"
+    },
+    {
+      "path": "ops/codex-runtime/README.md",
+      "sha256": "15c7f843b59992715dcc9d500395ce5e38b50758a0aa41dbf216c26087453e48"
+    },
+    {
+      "path": "ops/verify-codex.mjs",
+      "sha256": "eedff7953c1678618ec0848b9008a10a534b7648d32fc6c51f5f8403d0ad3a69"
+    },
+    {
+      "path": "test/entry.test.js",
+      "sha256": "c5ae4916c385c920e7b9926c25bf1f3af8e0b66b06e6bb969c5a6b9000958a43"
+    },
+    {
+      "path": "test/solo-mode.test.js",
+      "sha256": "6f605393147de4d65a6c860c73e4326bddc16aa0bcb55d10b8fe85ce6727508e"
+    },
+    {
+      "path": "docs/multiplayer-readme-archive.md",
+      "sha256": "72f7b87b78ba8c760a4f740a06f8b3a6c11322b47063ae48c1f5e421dea5e64c"
+    },
+    {
+      "path": "docs/single-player-acceptance.md",
+      "sha256": "89cc51d2eedf01742c9e87e494fbeb1bf77e2f5ab32b88c03209b96ff8618174"
+    },
+    {
+      "path": "ops/solo-ui-probe.mjs",
+      "sha256": "b558902614bcbe6a9102d94be2dbaac5c19ca01b36c8266071d3ed1ee58fedec"
+    },
+    {
+      "path": "ops/verify-solo-codex.mjs",
+      "sha256": "c36ea92d301d1065e10221f73aa6024ad680ad440e56884605a14f51e6548a7f"
+    },
+    {
+      "path": "public/music.js",
+      "sha256": "b4da08a831a31c03589610d30137e6eed7145ffe19cc26f98fceee73d7239cb9"
+    },
+    {
+      "path": "public/assets/music/tavern-theme.mp3",
+      "sha256": "320b37a09fc37ec5962c975563541bee9bcbf1208b0181789248780286f4c1d4"
+    },
+    {
+      "path": "public/assets/music/CREDITS.md",
+      "sha256": "0d2ee25f2a9a2a1e75e1c271437025fcabf4aa0b9b83f07bb8d0feee7add3eae"
+    },
+    {
+      "path": "public/card-callouts.js",
+      "sha256": "4f6b920bdffd3640ff89eb3ef02ebead63e60c6f7bfe5ce52e1ee144fbe0e5a7"
+    },
+    {
+      "path": "ops/generate-callouts.py",
+      "sha256": "971c74c7a3ff2fc00e44bdfb7e2a26fd0e1d4279369e589d1e54d31cd05fa1b6"
+    },
+    {
+      "path": "public/assets/voices/CREDITS.md",
+      "sha256": "28ac8b81797c3577ae4d5ec6c7e528a479b3b04b57a0393f7c7d1eca8ceaedb0"
+    },
+    {
+      "path": "public/assets/voices/female/a-1.wav",
+      "sha256": "49f7e260fc0b2c42f7a8ff363f7d8b6880edac2743ed3093d4284c34ac298e03"
+    },
+    {
+      "path": "public/assets/voices/female/a-2.wav",
+      "sha256": "38b7baf3a86a845aa23025a93243f5b554d181eb486dd223e1fc95457835b87a"
+    },
+    {
+      "path": "public/assets/voices/female/a-3.wav",
+      "sha256": "89ea10889664e2aed57decccdc538051359b0185b441272412178603d7a92cae"
+    },
+    {
+      "path": "public/assets/voices/female/k-1.wav",
+      "sha256": "6e944d8783cdcb86f55270c0a33a1d9ef402b400ce8f7c4ee65eeeaa6933899f"
+    },
+    {
+      "path": "public/assets/voices/female/k-2.wav",
+      "sha256": "d2033f90ce8dbb5d78ce4a6b0176af1eb7bd817ba1cd709cd231d403453841b7"
+    },
+    {
+      "path": "public/assets/voices/female/k-3.wav",
+      "sha256": "8d0871f62640215041bf2a693910ed9f03f2a2c7c8408a0225d6fbe395c16a53"
+    },
+    {
+      "path": "public/assets/voices/female/q-1.wav",
+      "sha256": "e54b4d2db7ff6691807140c68381f92a6eb9139effc980011cb517a89e02984f"
+    },
+    {
+      "path": "public/assets/voices/female/q-2.wav",
+      "sha256": "fd622d82cbd6796a7d122c0312777ea0a397752ce99ce513fcf8eaca2859b665"
+    },
+    {
+      "path": "public/assets/voices/female/q-3.wav",
+      "sha256": "98c3f20fe598920e084fd7e3d8983d91156738704fcb042e5d07ecf85f9fa8a1"
+    },
+    {
+      "path": "public/assets/voices/male/a-1.wav",
+      "sha256": "d755cfd1cda6200ed9e6ea27a8fe54fca50d6d40f6cc37cbc67e1bf0b6b02cff"
+    },
+    {
+      "path": "public/assets/voices/male/a-2.wav",
+      "sha256": "54895555838871b7fff611a8c920c7416d046de91048b6e6900203799741353c"
+    },
+    {
+      "path": "public/assets/voices/male/a-3.wav",
+      "sha256": "135950cfff6abfdfe25ce5eb711990df7b1ca4c745e8a76475347abd780b528e"
+    },
+    {
+      "path": "public/assets/voices/male/k-1.wav",
+      "sha256": "21746657cee62f73a99eb057f09437559f7dfae15410321991b000aee7112757"
+    },
+    {
+      "path": "public/assets/voices/male/k-2.wav",
+      "sha256": "38d727a06b08ae109a2799890da80fd8a510b0f475d750465480b9d5af89f110"
+    },
+    {
+      "path": "public/assets/voices/male/k-3.wav",
+      "sha256": "6029f47fc6727fcf24098a842882b679e788f7d78b36b9a68a76938eb11e3438"
+    },
+    {
+      "path": "public/assets/voices/male/q-1.wav",
+      "sha256": "f644d03e1a927c243d31ff87f485fa596cd63e6273255031fa24b7bca0df62eb"
+    },
+    {
+      "path": "public/assets/voices/male/q-2.wav",
+      "sha256": "2ed4bf7ea885a9b90b936c2e79a4c0a9b256f5624b839f4f3bc0a526ebf537fb"
+    },
+    {
+      "path": "public/assets/voices/male/q-3.wav",
+      "sha256": "1f5e8e31bc6342e9d161bdf65e7779a3c29b4b09dbdcdb4b8a0ea0f00858ac13"
+    },
+    {
+      "path": "public/assets/voices/manifest.json",
+      "sha256": "260fc7abc0f6dce21527e4e714dc519a6bad8b4f13bdc4f474c84ec69be026f9"
+    },
+    {
+      "path": "public/assets/ui/claim-words-v1.png",
+      "sha256": "1bafc79b0344da37a3897b7bfb88f6eaab58d60bf944d91656aeb90d39374da8"
+    },
+    {
+      "path": "public/assets/audio/card-place-v1.wav",
+      "sha256": "7f3e996cf23f0e016e6c73e8888cc6794d9d559f549f2f6fab34af0abcab5ab9"
+    },
+    {
+      "path": "ops/generate-card-place.py",
+      "sha256": "dc1f42f43d8f652428b3d8a995bad1dad8ddbebce041c48aab7e75385f032b1e"
+    },
+    {
+      "path": "docs/card-callout-art-v1.md",
+      "sha256": "749eecd9da95f957c89862ae46dd7bc20d40604945957e82f68f2767c8c2eb81"
+    }
+  ],
+  "excluded": [
+    "node_modules/",
+    "ops/dist/",
+    ".git/",
+    "archive/",
+    "ops/preview.log",
+    "ops/before-solo/",
+    "ops/codex-runtime/solo-state.json",
+    "ops/codex-runtime/solo-live-verification.json",
+    "ops/codex-preview.log",
+    "ops/solo-live-verification.log"
+  ],
+  "parentReleaseId": "liars-tavern-20260921-v1",
+  "localCodexAcceptance": {
+    "model": "gpt-5.6-luna",
+    "effort": "max",
+    "verifiedSeats": 3,
+    "actualModelCalls": 3,
+    "formatRetries": 0,
+    "unitAndSocketTestsPassed": 31,
+    "localUrl": "http://127.0.0.1:3280/",
+    "evidence": "ops/codex-verification.log"
+  },
+  "runtimeMode": "single-player-local",
+  "deploymentStatus": "local-only; previous VPS candidate not deployed",
+  "singlePlayerAcceptance": {
+    "date": "2026-09-21 Asia/Shanghai",
+    "testsPassed": 37,
+    "browserVerified": [
+      "human first turn",
+      "select and click play",
+      "select and Enter play",
+      "pause survives refresh",
+      "closed tab restores same cards paused"
+    ],
+    "actualModelCalls": 1,
+    "formatRetries": 0,
+    "model": "gpt-5.6-luna",
+    "effort": "max",
+    "liveDecisionLatencyMs": 26886,
+    "liveEvidence": "ops/solo-live-verification.log",
+    "userPreview": "http://127.0.0.1:3280/",
+    "scope": "local-only single-player; live model verified one decision, not entire match"
+  },
+  "musicAddition": {
+    "date": "2026-09-21",
+    "track": "Teller of the Tales",
+    "artist": "Kevin MacLeod",
+    "license": "CC BY 4.0",
+    "originalSteamSoundtrack": false,
+    "asset": "public/assets/music/tavern-theme.mp3",
+    "playback": "local, looping, independent toggle and volume",
+    "runtimeTested": false,
+    "testsRun": 0
+  },
+  "latestUiEditsTested": false,
+  "cardCalloutAddition": {
+    "date": "2026-09-21",
+    "speechEnabled": false,
+    "presentation": "Built-in imagegen pale-gold claim atlas; public target rank and count; fades after 2300ms; visible while muted",
+    "atlas": "public/assets/ui/claim-words-v1.png",
+    "sound": "public/assets/audio/card-place-v1.wav",
+    "soundSource": "original synthesized short paper/felt impact, no speech",
+    "trigger": "new public claim for human and AI seats",
+    "reconnect": "first snapshot is baseline, no historical replay",
+    "legacySpeechAssets": "retained on disk, no longer loaded or played",
+    "testsRun": 0,
+    "runtimeTested": false
+  }
+}

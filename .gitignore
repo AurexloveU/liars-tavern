@@ -1,0 +1,21 @@
+# Installed dependencies and generated packages
+node_modules/
+ops/dist/
+
+# Credentials and machine-specific configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.codex/
+
+# Personal saves and runtime evidence
+ops/codex-runtime/*
+!ops/codex-runtime/README.md
+*.log
+*.pid
+*.pid.lock
+*.tmp
+.DS_Store
+__pycache__/

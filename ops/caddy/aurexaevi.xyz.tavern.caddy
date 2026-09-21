@@ -1,0 +1,9 @@
+# Insert this block inside the existing aurexaevi.xyz site block.
+# handle_path removes /tavern before proxying, including Socket.IO/WebSocket paths.
+# >>> liars-tavern
+redir /tavern /tavern/ 308
+
+handle_path /tavern/* {
+  reverse_proxy 127.0.0.1:3279
+}
+# <<< liars-tavern
