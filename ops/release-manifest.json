@@ -38,7 +38,7 @@
     },
     {
       "path": "public/index.html",
-      "sha256": "3d535710b87ea1211a1e92635e3ae2707dfb089df1ae17fefca7b32daacff402"
+      "sha256": "bafb6ab4db5dd3fe332ee0376e4934d65b5384404cc8d978a1c784ff6d8e6628"
     },
     {
       "path": "public/scene.js",
@@ -46,7 +46,7 @@
     },
     {
       "path": "public/styles.css",
-      "sha256": "e50068cd777c02d2a8d9e6cf90d28ee91d31711c1d39413668d32612de79e7d7"
+      "sha256": "48cf9e900e2a8b5411ea7b33fc453ac639e6e3c2003aeaad13ed77901a5f8f8d"
     },
     {
       "path": "test/ai.test.js",
@@ -475,5 +475,11 @@
     "testsRun": 0,
     "actualModelValidationCalls": 0,
     "browserValidated": false
+  },
+  "handSizeRevision": {
+    "date": "2026-09-21",
+    "scale": 0.85,
+    "scope": "hand cards and hand-list layout footprint",
+    "testsRun": 0
   }
 }

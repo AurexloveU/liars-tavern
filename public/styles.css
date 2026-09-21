@@ -448,3 +448,6 @@ kbd { padding: 1px 4px; border: 1px solid rgba(255, 255, 255, 0.16); border-radi
 @media (min-width: 980px) { .chat-bar { right: max(20px, env(safe-area-inset-right)); width: 420px; transform: none; } }
 @media (max-width: 979px) { .chat-bar { right: 10px; width: calc(100vw - 20px); transform: none; } }
 @media (max-height: 600px) and (orientation: landscape) { .chat-bar { right: 10px; width: min(390px, calc(100vw - 20px)); transform: none; } }
+
+/* Shrink cards and their layout footprint together, including responsive sizes. */
+.hand-list { zoom: 0.85; }
