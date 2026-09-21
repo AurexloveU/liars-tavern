@@ -14,7 +14,7 @@
     },
     {
       "path": "ai.js",
-      "sha256": "ec5f0f21a7eed9de5fbfd2d630fe2a8531210715fee6c53320260aaf208e35a3"
+      "sha256": "1ceaee07fd5b1aba499b8b6f3b8ead69b108fca111a22ce90985dd326eefbb66"
     },
     {
       "path": "bot.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "025703f3b17302bc754e8b7af93f3f0e2fd3f5d82e979ede36b8cc01d3eea1f1"
+      "sha256": "f76a59fe7c0a836b0200bb50f59aabcbf50a3c2a07c1081df4e3d6a9472d586a"
     },
     {
       "path": "docs/research.md",
@@ -158,11 +158,11 @@
     },
     {
       "path": "codex-provider.js",
-      "sha256": "0479ce5cf45f95b83cfaf5e44a046dfa4935a68b67a7d9f3debc60b9f6c01f98"
+      "sha256": "4acfaf9883ca35ee89d643f30150aa1d3636297b01e23fa18a25bb2bf80d75ef"
     },
     {
       "path": "codex-server.js",
-      "sha256": "30c892e0a6cf5d1d80c67a1f6084cd4935a3fa9c3b7b0b77ef4e81aeb836bc6d"
+      "sha256": "497432f8a64acdf5334291537d50eaf4655df2e3d845f4028e5104ffe87c1868"
     },
     {
       "path": "test/codex-mode.test.js",
@@ -174,7 +174,7 @@
     },
     {
       "path": "ops/codex-runtime/README.md",
-      "sha256": "15c7f843b59992715dcc9d500395ce5e38b50758a0aa41dbf216c26087453e48"
+      "sha256": "3a91a384cc56d4c990fa97651dc013028b60253a5a9cd718a48d465566a80e21"
     },
     {
       "path": "ops/verify-codex.mjs",
@@ -389,5 +389,21 @@
     "legacySpeechAssets": "retained on disk, no longer loaded or played",
     "testsRun": 0,
     "runtimeTested": false
+  },
+  "aiLatencyOptimization": {
+    "date": "2026-09-21",
+    "model": "gpt-5.6-luna",
+    "effort": "max",
+    "changes": [
+      "separate reusable ephemeral thread per seat",
+      "compact complete game-view JSON",
+      "zero artificial pre-action delay in solo mode",
+      "mandatory roulette action resolved locally with zero model calls"
+    ],
+    "previousRecent20PlayingMedianMs": 23855.0,
+    "previousRecent20PlayingMaxMs": 102397,
+    "testsRun": 0,
+    "actualModelValidationCalls": 0,
+    "newLatencyMeasured": false
   }
 }

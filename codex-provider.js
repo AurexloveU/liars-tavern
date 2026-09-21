@@ -169,6 +169,7 @@ export class CodexAppServerClient {
     this.pending = new Map();
     this.turns = new Map();
     this.earlyEvents = new Map();
+    this.seatThreads = new Map();
     this.readyPromise = null;
     this.closed = false;
     this.stats = { turns: 0, inputTokens: 0, outputTokens: 0 };
@@ -215,6 +216,8 @@ export class CodexAppServerClient {
         latencyMs: numberOrNull(record?.latencyMs),
         inputTokens: numberOrNull(record?.inputTokens),
         outputTokens: numberOrNull(record?.outputTokens),
+        cachedInputTokens: numberOrNull(record?.cachedInputTokens),
+        reusedThread: record?.reusedThread === true,
       });
     } catch {
       // Observability must never affect a game action.
@@ -286,6 +289,8 @@ export class CodexAppServerClient {
       turn.reject(safe);
     }
     this.turns.clear();
+    this.seatThreads.clear();
+    this.earlyEvents.clear();
     this.child = null;
     this.readline?.close?.();
     this.readline = null;
@@ -339,7 +344,8 @@ export class CodexAppServerClient {
     else if (message.method === 'turn/completed') event = { type: 'completed', turn: params.turn || null };
     else if (message.method === 'error') event = { type: 'error', error: safeProviderError('Codex turn failed', { code: 'CODEX_TURN_ERROR' }) };
     if (!event || !threadId) return;
-    const turn = this.turns.get(key);
+    const turn = this.turns.get(key) || (!turnId && message.method === 'thread/tokenUsage/updated'
+      ? [...this.turns.values()].find((active) => active.threadId === threadId) : null);
     if (turn) this.applyTurnEvent(turn, event);
     else {
       const queued = this.earlyEvents.get(key) || [];
@@ -366,7 +372,7 @@ export class CodexAppServerClient {
       turn.done = true;
       clearTimeout(turn.timer);
       this.turns.delete(requestKey(turn.threadId, turn.turnId));
-      this.unsubscribeThread(turn.threadId);
+      this.releaseThread(turn.threadId);
       turn.reject(event.error);
       return;
     }
@@ -375,12 +381,32 @@ export class CodexAppServerClient {
       turn.done = true;
       clearTimeout(turn.timer);
       this.turns.delete(requestKey(turn.threadId, turn.turnId));
-      this.unsubscribeThread(turn.threadId);
+      this.releaseThread(turn.threadId, turn.completed?.status === 'completed');
       if (turn.completed?.status !== 'completed') {
         turn.reject(safeProviderError('Codex turn did not complete', { code: 'CODEX_TURN_FAILED', calls: 1 }));
       } else {
         turn.resolve({ text: turn.text, turn: turn.completed, tokenUsage: turn.tokenUsage });
       }
+    }
+  }
+
+  releaseThread(threadId, keep = false) {
+    for (const [key, entry] of this.seatThreads) {
+      if (entry.threadId !== threadId) continue;
+      if (keep) { entry.busy = false; return; }
+      this.seatThreads.delete(key);
+      break;
+    }
+    this.unsubscribeThread(threadId);
+  }
+
+  trimSeatThreads() {
+    // Keep a small number of independent seats loaded; never evict an active turn.
+    for (const [key, entry] of this.seatThreads) {
+      if (this.seatThreads.size < 12) break;
+      if (entry.busy) continue;
+      this.seatThreads.delete(key);
+      this.unsubscribeThread(entry.threadId);
     }
   }
 
@@ -414,73 +440,89 @@ export class CodexAppServerClient {
     try { this.child.stdin.write(`${JSON.stringify({ method, params })}\n`); } catch { /* process exit handles state */ }
   }
 
-  async runTurn({ text, outputSchema = ACTION_SCHEMA, timeoutMs = this.timeoutMs, developerInstructions = null } = {}) {
+  async runTurn({ text, outputSchema = ACTION_SCHEMA, timeoutMs = this.timeoutMs, developerInstructions = null, sessionKey = null } = {}) {
     await this.ready();
-    const thread = await this.request('thread/start', {
-      model: CODEX_MODEL,
-      cwd: this.cwd,
-      approvalPolicy: 'never',
-      sandbox: 'read-only',
-      baseInstructions: CODEX_BASE_INSTRUCTIONS,
-      developerInstructions,
-      personality: 'none',
-      ephemeral: true,
-      allowProviderModelFallback: false,
-      dynamicTools: [],
-      runtimeWorkspaceRoots: [this.cwd],
-      config: {
-        project_doc_max_bytes: 0,
-      },
-    }, Math.min(this.rpcTimeoutMs, timeoutMs));
-    const selectedModel = String(thread?.model || thread?.thread?.model || '');
-    if (selectedModel !== CODEX_MODEL) {
-      throw safeProviderError('Codex app-server selected an unexpected model', { code: 'CODEX_MODEL_MISMATCH' });
+    const previous = sessionKey ? this.seatThreads.get(sessionKey) : null;
+    const reusable = previous && !previous.busy && previous.developerInstructions === developerInstructions;
+    let threadId = reusable ? previous.threadId : null;
+    if (reusable) previous.busy = true;
+    else if (previous && !previous.busy) this.releaseThread(previous.threadId);
+    try {
+      if (!threadId) {
+        const thread = await this.request('thread/start', {
+          model: CODEX_MODEL,
+          cwd: this.cwd,
+          approvalPolicy: 'never',
+          sandbox: 'read-only',
+          baseInstructions: CODEX_BASE_INSTRUCTIONS,
+          developerInstructions,
+          personality: 'none',
+          ephemeral: true,
+          allowProviderModelFallback: false,
+          dynamicTools: [],
+          runtimeWorkspaceRoots: [this.cwd],
+          config: {
+            project_doc_max_bytes: 0,
+          },
+        }, Math.min(this.rpcTimeoutMs, timeoutMs));
+        const selectedModel = String(thread?.model || thread?.thread?.model || '');
+        if (selectedModel !== CODEX_MODEL) {
+          throw safeProviderError('Codex app-server selected an unexpected model', { code: 'CODEX_MODEL_MISMATCH' });
+        }
+        threadId = String(thread?.thread?.id || thread?.id || '');
+        if (!threadId) throw safeProviderError('Codex thread did not return an id', { code: 'CODEX_PROTOCOL_ERROR' });
+        if (sessionKey) {
+          this.trimSeatThreads();
+          this.seatThreads.set(sessionKey, { threadId, developerInstructions, busy: true });
+        }
+      }
+      const started = await this.request('turn/start', {
+        threadId,
+        input: [{ type: 'text', text: String(text || ''), text_elements: [] }],
+        model: CODEX_MODEL,
+        effort: CODEX_EFFORT,
+        approvalPolicy: 'never',
+        cwd: this.cwd,
+        sandboxPolicy: { type: 'readOnly', networkAccess: false },
+        outputSchema,
+        personality: 'none',
+        runtimeWorkspaceRoots: [this.cwd],
+        permissions: null,
+      }, Math.min(this.rpcTimeoutMs, timeoutMs));
+      const turnId = String(started?.turn?.id || started?.id || '');
+      if (!turnId) throw safeProviderError('Codex turn did not return an id', { code: 'CODEX_PROTOCOL_ERROR', calls: 1 });
+      return await new Promise((resolve, reject) => {
+        const turn = {
+          text: '', tokenUsage: null, completed: null, done: false, resolve, reject,
+          threadId, turnId,
+          timer: setTimeout(() => {
+            if (turn.done) return;
+            turn.done = true;
+            this.turns.delete(requestKey(threadId, turnId));
+            void this.request('turn/interrupt', { threadId, turnId }, this.rpcTimeoutMs).catch(() => {});
+            this.releaseThread(threadId);
+            reject(safeProviderError('Codex turn timed out', { code: 'CODEX_TIMEOUT', calls: 1 }));
+          }, Math.max(1, Number(timeoutMs) || this.timeoutMs)),
+        };
+        const key = requestKey(threadId, turnId);
+        this.turns.set(key, turn);
+        const early = this.earlyEvents.get(key) || [];
+        this.earlyEvents.delete(key);
+        for (const event of early) this.applyTurnEvent(turn, event);
+      }).then((result) => {
+        const usage = result?.tokenUsage || {};
+        const last = usage.last || usage;
+        const inputTokens = numberOrNull(last.inputTokens ?? last.input_tokens);
+        const outputTokens = numberOrNull(last.outputTokens ?? last.output_tokens);
+        if (inputTokens != null) this.stats.inputTokens += inputTokens;
+        if (outputTokens != null) this.stats.outputTokens += outputTokens;
+        this.stats.turns += 1;
+        return { ...result, reusedThread: Boolean(reusable) };
+      });
+    } catch (error) {
+      if (threadId) this.releaseThread(threadId);
+      throw error;
     }
-    const threadId = String(thread?.thread?.id || thread?.id || '');
-    if (!threadId) throw safeProviderError('Codex thread did not return an id', { code: 'CODEX_PROTOCOL_ERROR' });
-    const started = await this.request('turn/start', {
-      threadId,
-      input: [{ type: 'text', text: String(text || ''), text_elements: [] }],
-      model: CODEX_MODEL,
-      effort: CODEX_EFFORT,
-      approvalPolicy: 'never',
-      cwd: this.cwd,
-      sandboxPolicy: { type: 'readOnly', networkAccess: false },
-      outputSchema,
-      personality: 'none',
-      runtimeWorkspaceRoots: [this.cwd],
-      permissions: null,
-    }, Math.min(this.rpcTimeoutMs, timeoutMs));
-    const turnId = String(started?.turn?.id || started?.id || '');
-    if (!turnId) throw safeProviderError('Codex turn did not return an id', { code: 'CODEX_PROTOCOL_ERROR', calls: 1 });
-    return new Promise((resolve, reject) => {
-      const turn = {
-        text: '', tokenUsage: null, completed: null, done: false, resolve, reject,
-        threadId, turnId,
-        timer: setTimeout(() => {
-          if (turn.done) return;
-          turn.done = true;
-          this.turns.delete(requestKey(threadId, turnId));
-          void this.request('turn/interrupt', { threadId, turnId }, this.rpcTimeoutMs).catch(() => {});
-          this.unsubscribeThread(threadId);
-          reject(safeProviderError('Codex turn timed out', { code: 'CODEX_TIMEOUT', calls: 1 }));
-        }, Math.max(1, Number(timeoutMs) || this.timeoutMs)),
-      };
-      const key = requestKey(threadId, turnId);
-      this.turns.set(key, turn);
-      const early = this.earlyEvents.get(key) || [];
-      this.earlyEvents.delete(key);
-      for (const event of early) this.applyTurnEvent(turn, event);
-    }).then((result) => {
-      const usage = result?.tokenUsage || {};
-      const last = usage.last || usage;
-      const inputTokens = numberOrNull(last.inputTokens ?? last.input_tokens);
-      const outputTokens = numberOrNull(last.outputTokens ?? last.output_tokens);
-      if (inputTokens != null) this.stats.inputTokens += inputTokens;
-      if (outputTokens != null) this.stats.outputTokens += outputTokens;
-      this.stats.turns += 1;
-      return result;
-    });
   }
 
   async close() {
@@ -496,6 +538,8 @@ export class CodexAppServerClient {
       turn.reject(safeProviderError('Codex provider closed', { code: 'CODEX_CLOSED' }));
     }
     this.turns.clear();
+    this.seatThreads.clear();
+    this.earlyEvents.clear();
     this.readline?.close?.();
     this.readline = null;
     const child = this.child;
@@ -521,6 +565,7 @@ export function createCodexProvider(options = {}) {
   const client = options.client || new CodexAppServerClient(options);
   const maxCallsPerRoom = Math.max(1, Number(options.maxCallsPerRoom ?? options.maxRequestsPerRoom ?? DEFAULT_MAX_CALLS_PER_ROOM) || DEFAULT_MAX_CALLS_PER_ROOM);
   const roomCalls = new WeakMap();
+  const roomSessions = new WeakMap();
   const namedRoomCalls = new Map();
   const log = typeof options.logger === 'function' ? options.logger : null;
 
@@ -544,6 +589,15 @@ export function createCodexProvider(options = {}) {
     const view = room.aiView(seatIndex);
     const hand = Array.isArray(view?.selfHand) ? view.selfHand : [];
     const legalActions = Array.isArray(view?.state?.legalActions) ? view.state.legalActions : [];
+    let sessions = roomSessions.get(room);
+    if (!sessions) { sessions = new Map(); roomSessions.set(room, sessions); }
+    // Separate every seat, and start a fresh session when a new match resets rounds.
+    let session = sessions.get(seatIndex);
+    if (!session || Number(view.state.round) < session.round) {
+      session = { round: Number(view.state.round), key: {} };
+      sessions.set(seatIndex, session);
+    }
+    session.round = Number(view.state.round);
     const messages = buildMessages(ai || {}, view);
     const messagesFor = (correction = '') => correction
       ? buildMessages(ai || {}, view, correction).user
@@ -556,6 +610,7 @@ export function createCodexProvider(options = {}) {
       try {
         return await client.runTurn({
           text: messagesFor(correction),
+          sessionKey: session.key,
           outputSchema: actionSchemaFor(phase),
           developerInstructions: messages.system,
           timeoutMs: options.timeoutMs ?? options.turnTimeoutMs ?? DEFAULT_CODEX_TIMEOUT_MS,
@@ -582,6 +637,8 @@ export function createCodexProvider(options = {}) {
         seatIndex, phase, calls, latencyMs: Date.now() - startedAt,
         inputTokens: last.inputTokens ?? last.input_tokens,
         outputTokens: last.outputTokens ?? last.output_tokens,
+        cachedInputTokens: last.cachedInputTokens ?? last.cached_input_tokens,
+        reusedThread: result?.reusedThread,
       });
       return { ...decision, calls };
     } catch (firstError) {
@@ -601,6 +658,8 @@ export function createCodexProvider(options = {}) {
           seatIndex, phase, calls, latencyMs: Date.now() - startedAt,
           inputTokens: last.inputTokens ?? last.input_tokens,
           outputTokens: last.outputTokens ?? last.output_tokens,
+          cachedInputTokens: last.cachedInputTokens ?? last.cached_input_tokens,
+          reusedThread: repair?.reusedThread,
         });
         return { ...decision, calls };
       } catch {

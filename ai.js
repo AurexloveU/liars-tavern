@@ -179,7 +179,7 @@ function chatTokenField(config) {
 }
 
 function viewJson(view) {
-  return JSON.stringify(view, null, 2);
+  return JSON.stringify(view);
 }
 
 export function buildMessages(config, view, correction = '') {

@@ -22,14 +22,21 @@ export async function createLocalCodexServer(options = {}) {
     allowCodex: true,
     aiDefaults: { protocol: 'codex', model: 'gpt-5.6-luna' },
     // Give a first-time player time to read the cards and controls.
-    durations: { turnMs: 300_000, triggerMs: 60_000 },
+    durations: { turnMs: 300_000, triggerMs: 60_000, aiDelayMinMs: 0, aiDelayMaxMs: 0 },
     cors: { origin: [...origins], credentials: false },
     allowRequest: (req, callback) => {
       const host = req.headers.host;
       const validHost = host === `127.0.0.1:${port}` || host === `localhost:${port}`;
       callback(null, validHost && (!req.headers.origin || origins.has(req.headers.origin)));
     },
-    aiProvider: (request) => request.ai?.protocol === 'codex' ? codex(request) : external(request),
+    aiProvider: (request) => {
+      // Roulette has no decision to make; resolve the mandatory action locally.
+      // Card selection and challenges always go through the configured LLM.
+      if (request.phase === 'roulette') {
+        return { action: 'pullTrigger', cardIds: [], speech: '', calls: 0 };
+      }
+      return request.ai?.protocol === 'codex' ? codex(request) : external(request);
+    },
   });
   const closeGame = server.close;
   server.close = async () => {
