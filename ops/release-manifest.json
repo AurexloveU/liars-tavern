@@ -22,7 +22,7 @@
     },
     {
       "path": "server.js",
-      "sha256": "025ac330e6e7da99f93d929e41499c44f3a49225323035a8b98f606263443d9d"
+      "sha256": "af434383dfa1da27a89b02e3aaa651f2a271ab81d06d8e66f76df522838e3066"
     },
     {
       "path": "package.json",
@@ -38,7 +38,7 @@
     },
     {
       "path": "public/index.html",
-      "sha256": "f3e2a575ce3043ffc1197be71d03ee8d1929a94e23fac696eb08e307340e38a2"
+      "sha256": "1a209d331d3d33e7167619c5be3e1075339fbe3d077f435bb169e679d4dd4e5a"
     },
     {
       "path": "public/scene.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "8a4975e6a4c47736711e03e02b2d71d25042dc3a5785f15444ee1d808f5e517d"
+      "sha256": "a6b8a16f8969ddb4ac5f8857dc1362b22dbd938302bb5cc1ac3dec218028ed71"
     },
     {
       "path": "docs/research.md",
@@ -322,7 +322,7 @@
     },
     {
       "path": "player-records.js",
-      "sha256": "c2e1e462519c716b8411a57e88193223774cfb53a5d432ccc277a17384da90a4"
+      "sha256": "f8373aa519ab498e8ac833d4e90a4608f8496a7bbefcd4d6c643ef5c423cf385"
     },
     {
       "path": "public/model-presets.js",
@@ -330,11 +330,11 @@
     },
     {
       "path": "public/model-names.json",
-      "sha256": "fcc4bdbfd520c4e4b018f9e7ab958899a5400979c02620671055b9c7087e910a"
+      "sha256": "1ffdb2acf5cdf01273b5fde9145bf9bf6caebf677e7dd559fce1323e0a24c650"
     },
     {
       "path": "ops/name-model-players.mjs",
-      "sha256": "9428eda4eb4fec1f33ddda76554ee38e943a0ff8976027c32fbb805de3443800"
+      "sha256": "26d66b9e4732fb7a669dd641441e12a8bcf0e3a5eb5387b2bb21524c04620342"
     }
   ],
   "excluded": [
@@ -428,22 +428,22 @@
       {
         "model": "gpt-6-astra",
         "effort": "medium",
-        "name": "赊月客"
+        "name": "Emma"
       },
       {
         "model": "gpt-5.6-sol",
         "effort": "high",
-        "name": "烬杯狐"
+        "name": "Ethan"
       },
       {
         "model": "gpt-5.6-terra",
         "effort": "xhigh",
-        "name": "雾骰郎"
+        "name": "Liam"
       },
       {
         "model": "gpt-5.6-luna",
         "effort": "max",
-        "name": "醉月鸦"
+        "name": "Mason"
       }
     ],
     "identityGenerationCalls": 4,
@@ -454,5 +454,12 @@
     "statsScope": "local device, match-ID deduplicated; prior missing results not reconstructed",
     "testsRun": 0,
     "gameplayValidated": false
+  },
+  "modelNameRevision": {
+    "style": "common modern English first names",
+    "modelCalls": 4,
+    "repairs": 0,
+    "statsIdentityChanged": false,
+    "testsRun": 0
   }
 }

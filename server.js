@@ -109,7 +109,7 @@ export function createGameServer(options = {}) {
     timeoutMs: options.aiTimeoutMs || 25_000,
   });
   const sessions = new Map();
-  const records = soloMode ? new PlayerRecords(options.recordsPath || (soloStatePath ? path.join(path.dirname(soloStatePath), 'player-records.json') : null)) : null;
+  const records = soloMode ? new PlayerRecords(options.recordsPath || (soloStatePath ? path.join(path.dirname(soloStatePath), 'player-records.json') : null), options.modelNames) : null;
   if (soloMode) {
     app.get('/api/player-records', (_req, res) => res.json(records.summary()));
     app.get('/api/model-players', (_req, res) => res.json({ players: MODEL_PRESETS.map((preset) => ({ ...preset, name: options.modelNames?.[preset.id]?.name || preset.label })) }));

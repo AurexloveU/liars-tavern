@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { modelPreset } from './public/model-presets.js';
+import { MODEL_PRESETS, modelPreset } from './public/model-presets.js';
 
 function identity(seat) {
   const preset = seat.kind === 'ai' && seat.ai?.protocol === 'codex' ? modelPreset(seat.ai.model) : null;
@@ -17,8 +17,9 @@ function identity(seat) {
 }
 
 export class PlayerRecords {
-  constructor(file) {
+  constructor(file, modelNames = {}) {
     this.file = file;
+    this.modelNames = modelNames;
     this.error = '';
     this.blocked = false;
     this.data = { version: 1, trackingSince: new Date().toISOString(), players: {}, matches: {} };
@@ -79,7 +80,9 @@ export class PlayerRecords {
       const matches = Object.values(this.data.matches).filter((match) => match.participants.includes(player.id));
       const completed = matches.filter((match) => match.completedAt);
       const wins = completed.filter((match) => match.winnerId === player.id).length;
-      return { ...player, joined: matches.length, played: completed.length, wins, losses: completed.length - wins,
+      const preset = MODEL_PRESETS.find((entry) => entry.label === player.model);
+      const name = player.kind === 'ai' && preset ? this.modelNames[preset.id]?.name || player.name : player.name;
+      return { ...player, name, joined: matches.length, played: completed.length, wins, losses: completed.length - wins,
         winRate: completed.length ? Math.round(100 * wins / completed.length) : null };
     }).sort((a, b) => b.wins - a.wins || b.played - a.played || a.name.localeCompare(b.name, 'zh-CN'));
     return { trackingSince: this.data.trackingSince, error: this.error, players: rows };
