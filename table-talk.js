@@ -1,3 +1,4 @@
+import { participationStatus, attributedSpeech } from './public/speech-format.js';
 import { shortSpeech } from './public/model-presets.js';
 
 // Each seat has an independent chat queue. Chat never executes a card action.
@@ -68,6 +69,8 @@ export class TableTalk {
     const triggers = seat.pending.splice(0);
     if (!triggers.length) return;
     const ai = { ...player.ai };
+    const roleAtStart = participationStatus(player, room.phase);
+    const nameAtStart = player.name;
     const identity = JSON.stringify([ai.model, ai.effort, ai.protocol, ai.persona, ai.systemPrompt, ai.baseUrl]);
     const depth = Math.min(...triggers.map((trigger) => trigger.depth));
     seat.busy = true;
@@ -80,14 +83,27 @@ export class TableTalk {
       const view = room.aiView(seat.index);
       const chatView = {
         mode: 'chat', selfSeat: seat.index,
+        self: { seatIndex: seat.index, name: nameAtStart, alive: player.alive, participationStatus: roleAtStart },
         state: { ...view.state, legalActions: [] },
-        transcript,
-        newEvents: triggers.map(({ event }) => event),
+        transcript: transcript.map((message) => ({ ...message,
+          sender: { seatIndex: message.seatIndex, name: message.name, status: message.speakerStatus || 'unknown' },
+          attributedText: attributedSpeech(message.text, message.name, message.speakerStatus),
+        })),
+        newEvents: triggers.map(({ event }) => event.type !== 'speech' ? event : ({ ...event,
+          sender: { seatIndex: event.seatIndex, name: event.speakerName, status: event.speakerStatus || 'unknown' },
+          attributedText: attributedSpeech(event.message || event.text, event.speakerName, event.speakerStatus),
+        })),
       };
       const decision = await this.provider({ room, seatIndex: seat.index, ai, phase: 'chat', chatView });
       if (this.rooms.get(room) !== entry || room.matchId !== entry.matchId || !this.connected(room)) return;
       const current = room.players[seat.index];
       if (current?.kind !== 'ai' || JSON.stringify([current.ai.model, current.ai.effort, current.ai.protocol, current.ai.persona, current.ai.systemPrompt, current.ai.baseUrl]) !== identity) return;
+      if (participationStatus(current, room.phase) !== roleAtStart || current.name !== nameAtStart) {
+        // A living player's pending utterance must not appear after elimination.
+        // Revisit the same conversation with the new role on the next queued call.
+        seat.pending = [...triggers, ...seat.pending].slice(-40);
+        return;
+      }
       const text = shortSpeech(decision.speech);
       if (text) room.say(seat.index, text, { chatDepth: depth });
     } catch (error) {

@@ -451,3 +451,5 @@ kbd { padding: 1px 4px; border: 1px solid rgba(255, 255, 255, 0.16); border-radi
 
 /* Shrink cards and their layout footprint together, including responsive sizes. */
 .hand-list { zoom: 0.85; }
+
+.seat-speech .speech-sender { display: block; margin-top: 3px; color: var(--brass-soft); font-size: 11px; line-height: 1.4; }

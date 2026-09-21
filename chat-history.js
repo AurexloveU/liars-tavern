@@ -1,3 +1,4 @@
+import { attributedSpeech } from './public/speech-format.js';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -55,6 +56,7 @@ export class ChatHistory {
           id: event.id, createdAt: event.createdAt, round: event.round ?? null,
           seatIndex: event.seatIndex,
           name: event.speakerName ?? (separator >= 0 ? event.text.slice(0, separator) : '玩家'),
+          speakerStatus: event.speakerStatus ?? null,
           kind: event.speakerKind ?? room.players[event.seatIndex]?.kind ?? 'unknown',
           text: event.message ?? (separator >= 0 ? event.text.slice(separator + 1) : event.text),
         });
@@ -102,7 +104,7 @@ export class ChatHistory {
       `状态：${({ playing: '进行中', ended: '已结束', abandoned: '中途离开' })[archive.status]}`,
       ...(archive.winner ? [`赢家：${archive.winner}`] : []),
       ...(archive.partial ? ['本局从启用聊天存档时开始记录；更早的发言可能缺失。'] : []), '',
-      ...archive.messages.map((message) => `[${date(message.createdAt)}${message.round ? ` · 第 ${message.round} 轮` : ''}] ${message.name}：${message.text}`),
+      ...archive.messages.map((message) => `[${date(message.createdAt)}${message.round ? ` · 第 ${message.round} 轮` : ''}] ${attributedSpeech(message.text, message.name, message.speakerStatus)}`),
       '',
     ].join('\n');
   }

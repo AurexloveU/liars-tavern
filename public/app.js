@@ -1,3 +1,4 @@
+import { speakerSuffix, attributedSpeech } from './speech-format.js';
 import { MODEL_PRESETS, modelPreset } from './model-presets.js';
 import { setupBackgroundMusic } from './music.js';
 import { createCardCallouts } from './card-callouts.js?v=gold-claims-1';
@@ -248,6 +249,10 @@ function renderSeatHud() {
       const bubble = document.createElement('span');
       bubble.className = 'seat-speech';
       bubble.textContent = player.speech.text;
+      const sender = document.createElement('small');
+      sender.className = 'speech-sender';
+      sender.textContent = speakerSuffix(player.speech.speakerName || player.name, player.speech.speakerStatus);
+      bubble.append(sender);
       bubble.setAttribute('role', 'status');
       badge.append(bubble);
       nextSpeechExpiry = Math.min(nextSpeechExpiry, remaining);
@@ -451,7 +456,7 @@ async function loadChatMessages() {
       const header = document.createElement('small');
       header.textContent = `${message.name} · ${new Date(message.createdAt).toLocaleTimeString('zh-CN', { hour12: false })}${message.round ? ` · 第 ${message.round} 轮` : ''}`;
       const text = document.createElement('p');
-      text.textContent = message.text;
+      text.textContent = attributedSpeech(message.text, message.name, message.speakerStatus);
       row.append(header, text);
       return row;
     }));

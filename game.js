@@ -1,3 +1,4 @@
+import { participationStatus, attributedSpeech } from './public/speech-format.js';
 import { modelPreset, shortSpeech } from './public/model-presets.js';
 import crypto from 'node:crypto';
 
@@ -1065,9 +1066,10 @@ export class LiarRoom {
       ? Array.from(typeof value === 'string' ? value.replace(/\s+/gu, ' ').trim() : '').slice(0, 200).join('')
       : shortSpeech(value);
     if (!text) return;
-    seat.speech = { text, createdAt: this.now(), id: this.eventSeq + 1 };
-    this.addEvent(`${seat.name}：${text}`, 'speech', {
-      seatIndex, message: text, speakerName: seat.name, speakerKind: seat.kind,
+    const speakerStatus = participationStatus(seat, this.phase);
+    seat.speech = { text, speakerName: seat.name, speakerStatus, createdAt: this.now(), id: this.eventSeq + 1 };
+    this.addEvent(attributedSpeech(text, seat.name, speakerStatus), 'speech', {
+      seatIndex, message: text, speakerName: seat.name, speakerKind: seat.kind, speakerStatus,
       round: this.round, matchId: this.matchId,
       ...(Number.isInteger(chatDepth) ? { chatDepth } : {}),
     });

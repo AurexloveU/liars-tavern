@@ -10,11 +10,11 @@
   "files": [
     {
       "path": "game.js",
-      "sha256": "8f271cb2b56573fbfa25113bb84546c278dd9706b5c16dc010b2e49739b9b73b"
+      "sha256": "4fa0fd6fe5057f8c7840d2af5462aff2bd653713a4e2f86fae92ee1d09fc8426"
     },
     {
       "path": "ai.js",
-      "sha256": "3ad5d8da85440bbf111e5a9d1b53d1e6ad9fe2fcce19282321866456a4471043"
+      "sha256": "b2a896233835ce0287f79645a5479078cb2fab2741c9534c8618dd80a1b3a8af"
     },
     {
       "path": "bot.js",
@@ -34,11 +34,11 @@
     },
     {
       "path": "public/app.js",
-      "sha256": "18754de89dee1d6159f4140f741aa77e563d8e75ec9b6d3b3a4d0a2a3c166914"
+      "sha256": "bc1cee145571ce11c8d78da30a2883a6b9125a991bbb3cd2254f32ec9bcf130a"
     },
     {
       "path": "public/index.html",
-      "sha256": "83147508c43f392879ca2af5824fd40cf2d853b005baeaec2da7be64c017f92e"
+      "sha256": "971d77c20ade7dc91095c2b6418c22b46141eed72f820c529fecc0243f45fe7d"
     },
     {
       "path": "public/scene.js",
@@ -46,7 +46,7 @@
     },
     {
       "path": "public/styles.css",
-      "sha256": "48cf9e900e2a8b5411ea7b33fc453ac639e6e3c2003aeaad13ed77901a5f8f8d"
+      "sha256": "60cd038864137c318ce297ed712dc6d1427d1c7261a1e737ddb8758502f58e5a"
     },
     {
       "path": "test/ai.test.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "ebe3d8bfc7a898f7ad123d3ab0beee36028cec8fd7317281af06a4e58b9b7e8d"
+      "sha256": "0ecba00db4cac3102e34a4ca6831ffd2ce809d221f2555212bc08ed980bfde76"
     },
     {
       "path": "docs/research.md",
@@ -338,11 +338,15 @@
     },
     {
       "path": "chat-history.js",
-      "sha256": "7fb895ca0d99f5f06d1c6584db07b2d096f0b09c262de5391ae71ed33ecaeaee"
+      "sha256": "9c2561238568673179c991f3326f1d26768cb339e4b4e1d3c9fcef106b0f50d8"
     },
     {
       "path": "table-talk.js",
-      "sha256": "cd2eeea6f6213905138937eaa6d9896c02749a0d58d24d095d8ec9addbf12590"
+      "sha256": "8f41857efda419f46c55a974e7891eaa6b48368b0c1a9742e907909e5076a78a"
+    },
+    {
+      "path": "public/speech-format.js",
+      "sha256": "a1233a8250e939ba35f9d5e85f07ed6e92f87ba80bf4080778d39f3ec6f6d3eb"
     }
   ],
   "excluded": [
@@ -500,5 +504,14 @@
     "testsRun": 0,
     "actualModelValidationCalls": 0,
     "browserValidated": false
+  },
+  "spectatorAndSpeakerIdentity": {
+    "date": "2026-09-21",
+    "explicitSelfLifeStatus": true,
+    "serverAssignedSenderSuffix": true,
+    "archiveStatusAtMessageTime": true,
+    "discardRepliesGeneratedBeforeRoleChange": true,
+    "testsRun": 0,
+    "actualModelValidationCalls": 0
   }
 }
