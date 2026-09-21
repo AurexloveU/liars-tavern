@@ -10,11 +10,11 @@
   "files": [
     {
       "path": "game.js",
-      "sha256": "89d1504a31a40eb37f1d344494e3e6fd577faf6a5d903ef3b0198357a94f9394"
+      "sha256": "8f271cb2b56573fbfa25113bb84546c278dd9706b5c16dc010b2e49739b9b73b"
     },
     {
       "path": "ai.js",
-      "sha256": "f0bf472e2800990dcb580b89a4630fa204da0254fc54d379b5e2c50fbe330425"
+      "sha256": "3ad5d8da85440bbf111e5a9d1b53d1e6ad9fe2fcce19282321866456a4471043"
     },
     {
       "path": "bot.js",
@@ -22,7 +22,7 @@
     },
     {
       "path": "server.js",
-      "sha256": "72fafa2a7fa6b45e7b0e2bdf0656f895745f74c2c705e83d5e87fa007621e99e"
+      "sha256": "8672ccf1638bf65b7839a22531d4749dd726f00624416a296f6707c4e34541b9"
     },
     {
       "path": "package.json",
@@ -34,11 +34,11 @@
     },
     {
       "path": "public/app.js",
-      "sha256": "f73036fa3a7fdac338659a2ff32153c26f5564c4e9d0db87357024544c7fcea5"
+      "sha256": "18754de89dee1d6159f4140f741aa77e563d8e75ec9b6d3b3a4d0a2a3c166914"
     },
     {
       "path": "public/index.html",
-      "sha256": "bafb6ab4db5dd3fe332ee0376e4934d65b5384404cc8d978a1c784ff6d8e6628"
+      "sha256": "83147508c43f392879ca2af5824fd40cf2d853b005baeaec2da7be64c017f92e"
     },
     {
       "path": "public/scene.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "d8804a86b46eab58662a3bbd5a5fddc3f43ac46b2862d2c5602cd99ab2f41e37"
+      "sha256": "ebe3d8bfc7a898f7ad123d3ab0beee36028cec8fd7317281af06a4e58b9b7e8d"
     },
     {
       "path": "docs/research.md",
@@ -158,7 +158,7 @@
     },
     {
       "path": "codex-provider.js",
-      "sha256": "a805f1c23f4bf1e14684fcf323a5a0931cf62e6421654d5bb1bed1a90370d47a"
+      "sha256": "50672cb91b04f4ed7f04b2f75613808066909b844bcee380cef52a2698d39f2d"
     },
     {
       "path": "codex-server.js",
@@ -339,6 +339,10 @@
     {
       "path": "chat-history.js",
       "sha256": "7fb895ca0d99f5f06d1c6584db07b2d096f0b09c262de5391ae71ed33ecaeaee"
+    },
+    {
+      "path": "table-talk.js",
+      "sha256": "cd2eeea6f6213905138937eaa6d9896c02749a0d58d24d095d8ec9addbf12590"
     }
   ],
   "excluded": [
@@ -481,5 +485,20 @@
     "scale": 0.85,
     "scope": "hand cards and hand-list layout footprint",
     "testsRun": 0
+  },
+  "independentTableTalk": {
+    "date": "2026-09-21",
+    "trigger": "new public dialogue and challenge/roulette events",
+    "offTurn": true,
+    "pausedAndEliminatedChat": true,
+    "maximumSpeechCodePoints": 20,
+    "modelAndEffortUnchanged": true,
+    "parallelChatSessions": true,
+    "additionalModelCalls": true,
+    "historyWindowMessages": 40,
+    "followUpDepth": 1,
+    "testsRun": 0,
+    "actualModelValidationCalls": 0,
+    "browserValidated": false
   }
 }

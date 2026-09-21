@@ -1059,7 +1059,7 @@ export class LiarRoom {
     }
   }
 
-  say(seatIndex, value) {
+  say(seatIndex, value, { chatDepth } = {}) {
     const seat = this._assertSeat(seatIndex);
     const text = seat.kind === 'human'
       ? Array.from(typeof value === 'string' ? value.replace(/\s+/gu, ' ').trim() : '').slice(0, 200).join('')
@@ -1069,6 +1069,7 @@ export class LiarRoom {
     this.addEvent(`${seat.name}：${text}`, 'speech', {
       seatIndex, message: text, speakerName: seat.name, speakerKind: seat.kind,
       round: this.round, matchId: this.matchId,
+      ...(Number.isInteger(chatDepth) ? { chatDepth } : {}),
     });
   }
 

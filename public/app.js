@@ -374,8 +374,9 @@ function renderChatControls() {
   document.body.classList.toggle('has-chat', Boolean(eligible));
   $('chat-send').disabled = !socket?.connected || chatSending || !$('chat-input').value.trim();
   $('chat-count').textContent = `${Array.from($('chat-input').value).length} / 200`;
-  const error = state?.chatArchiveError;
-  $('chat-save-status').textContent = error || (chatSending ? '发送中……' : '本局聊天自动保存');
+  const error = state?.chatArchiveError || state?.tableTalk?.error;
+  const replying = state?.tableTalk?.pending || [];
+  $('chat-save-status').textContent = error || (chatSending ? '发送中……' : replying.length ? `${replying.join('、')} 在想怎么接话…` : '可随时聊天 · 本局自动保存');
   $('chat-save-status').classList.toggle('form-error', Boolean(error));
 }
 

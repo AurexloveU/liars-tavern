@@ -1,3 +1,4 @@
+import { TableTalk } from './table-talk.js';
 import { ChatHistory } from './chat-history.js';
 import { PlayerRecords } from './player-records.js';
 import { MODEL_PRESETS } from './public/model-presets.js';
@@ -134,6 +135,7 @@ export function createGameServer(options = {}) {
     app.get('/api/player-records', (_req, res) => res.json(records.summary()));
     app.get('/api/model-players', (_req, res) => res.json({ players: MODEL_PRESETS.map((preset) => ({ ...preset, name: options.modelNames?.[preset.id]?.name || preset.label })) }));
   }
+  const tableTalk = new TableTalk({ provider: aiProvider, history: chatHistory, connected: (room) => [...sessions.values()].some((session) => session.roomCode === room.code), emit: emitState });
   const sweepEvery = Number(options.sweepEvery || 250);
 
   function stateFor(room, session) {
@@ -142,6 +144,7 @@ export function createGameServer(options = {}) {
     state.soloMode = isSoloRoom;
     state.paused = isSoloRoom ? Boolean(room.soloPaused) : false;
     if (isSoloRoom) { state.code = null; state.playerRecords = records.summary(); state.chatArchiveError = chatHistory.error; }
+    state.tableTalk = tableTalk.state(room);
     state.isHost = isSoloRoom ? Boolean(session) : Boolean(session?.isHost);
     if (session?.isHost || isSoloRoom) state.hostConfigs = roomHostConfig(room);
     return state;
@@ -176,6 +179,7 @@ export function createGameServer(options = {}) {
   function attachRoom(room) {
     room.onState = (target) => {
       if (soloMode) { records.observe(target); chatHistory.observe(target); }
+      tableTalk.observe(target);
       persistSoloRoom(target);
       emitState(target);
     };
@@ -279,6 +283,7 @@ export function createGameServer(options = {}) {
     if (soloRoom) chatHistory?.observe(soloRoom, true);
     if (!soloRoom) return;
     const old = soloRoom;
+    tableTalk.cancel(old);
     for (const [socketId, session] of sessions) {
       if (session.roomCode !== old.code) continue;
       old.unbindConnection(session, socketId);
@@ -349,7 +354,7 @@ export function createGameServer(options = {}) {
     sessions.delete(socket.id);
     if (!keepRoom && room) removeRoom(room.code);
     else if (room) {
-      if (soloMode && room === soloRoom && !hasConnectedSoloClient()) room.pauseSolo();
+      if (soloMode && room === soloRoom && !hasConnectedSoloClient()) { tableTalk.cancel(room); room.pauseSolo(); }
       emitState(room);
     }
   }
@@ -357,6 +362,7 @@ export function createGameServer(options = {}) {
   function removeRoom(code) {
     const room = rooms.get(code);
     if (!room) return;
+    tableTalk.cancel(room);
     room.destroy();
     rooms.delete(code);
     for (const [socketId, session] of sessions) {
@@ -633,6 +639,7 @@ export function createGameServer(options = {}) {
 
   async function close() {
     clearInterval(sweepTimer);
+    tableTalk.close();
     for (const room of rooms.values()) room.destroy();
     soloRoom?.destroy();
     for (const socket of io.sockets.sockets.values()) socket.disconnect(true);

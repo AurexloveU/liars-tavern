@@ -29,7 +29,7 @@ export const CODEX_BASE_INSTRUCTIONS = [
   'Jokers are wild and never make a claim false. Bluffing is allowed: a non-Joker may differ from the public target rank.',
   'The game view contains only public information and your own hand. Never request, invent, or claim hidden opponent cards or lethal chamber information.',
   'Use public history and probability, but never use a hidden card or chamber location.',
-  'Return only one JSON object with action, cardIds, and speech. Do not return chain of thought, markdown, or tool calls.',
+  'For a view with mode chat, return only a JSON object with speech; this is independent conversation, never a card action. Otherwise return only one JSON object with action, cardIds, and speech. Do not return chain of thought, markdown, or tool calls.',
   'During playing, play 1 to 3 of your own cards or challenge the immediately previous play when legal. If legalActions contains only challenge, challenge.',
   'There is no challenge before the first play. During roulette, the only legal action is pullTrigger with cardIds exactly [].',
   'Speak in character to the other players in Simplified Chinese. Aim for 10 characters or fewer, never exceed 20 characters including punctuation. Do not reveal your actual hidden cards. Respond to public table talk when useful.',
@@ -47,6 +47,7 @@ const ACTION_SCHEMA = Object.freeze({
 });
 
 function actionSchemaFor(phase) {
+  if (phase === 'chat') return { type: 'object', additionalProperties: false, properties: { speech: { type: 'string', maxLength: 20 } }, required: ['speech'] };
   if (phase === 'roulette') {
     return {
       ...ACTION_SCHEMA,
@@ -578,6 +579,7 @@ export function createCodexProvider(options = {}) {
   const client = options.client || new CodexAppServerClient(options);
   const maxCallsPerRoom = Math.max(1, Number(options.maxCallsPerRoom ?? options.maxRequestsPerRoom ?? DEFAULT_MAX_CALLS_PER_ROOM) || DEFAULT_MAX_CALLS_PER_ROOM);
   const roomCalls = new WeakMap();
+  const chatCalls = new WeakMap();
   const roomSessions = new WeakMap();
   const namedRoomCalls = new Map();
   const log = typeof options.logger === 'function' ? options.logger : null;
@@ -597,18 +599,20 @@ export function createCodexProvider(options = {}) {
     return next;
   }
 
-  const provider = async ({ room, seatIndex, phase = 'playing', ai = {} } = {}) => {
+  const provider = async ({ room, seatIndex, phase = 'playing', ai = {}, chatView } = {}) => {
     if (!room || !Number.isInteger(seatIndex)) throw safeProviderError('Codex request missing room seat', { code: 'CODEX_REQUEST_INVALID' });
-    const view = room.aiView(seatIndex);
+    const view = phase === 'chat' ? chatView : room.aiView(seatIndex);
+    if (!view) throw safeProviderError('Chat view missing', { code: 'CODEX_REQUEST_INVALID' });
     const hand = Array.isArray(view?.selfHand) ? view.selfHand : [];
     const legalActions = Array.isArray(view?.state?.legalActions) ? view.state.legalActions : [];
     let sessions = roomSessions.get(room);
     if (!sessions) { sessions = new Map(); roomSessions.set(room, sessions); }
     // Separate every seat, and start a fresh session when a new match resets rounds.
-    let session = sessions.get(seatIndex);
+    const channelKey = phase === 'chat' ? `chat:${seatIndex}` : seatIndex;
+    let session = sessions.get(channelKey);
     if (!session || Number(view.state.round) < session.round) {
       session = { round: Number(view.state.round), key: {} };
-      sessions.set(seatIndex, session);
+      sessions.set(channelKey, session);
     }
     session.round = Number(view.state.round);
     const preset = modelPreset(ai.model || CODEX_MODEL);
@@ -620,7 +624,10 @@ export function createCodexProvider(options = {}) {
     let calls = 0;
     const startedAt = Date.now();
     const run = async (correction = '') => {
-      reserve(room);
+      if (phase === 'chat') {
+        const used = chatCalls.get(room) || 0;
+        chatCalls.set(room, used + 1);
+      } else reserve(room);
       calls += 1;
       try {
         return await client.runTurn({
