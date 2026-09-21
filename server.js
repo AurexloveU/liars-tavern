@@ -1,3 +1,4 @@
+import { ChatHistory } from './chat-history.js';
 import { PlayerRecords } from './player-records.js';
 import { MODEL_PRESETS } from './public/model-presets.js';
 import crypto from 'node:crypto';
@@ -110,7 +111,26 @@ export function createGameServer(options = {}) {
   });
   const sessions = new Map();
   const records = soloMode ? new PlayerRecords(options.recordsPath || (soloStatePath ? path.join(path.dirname(soloStatePath), 'player-records.json') : null), options.modelNames) : null;
+  const chatHistory = soloMode ? new ChatHistory(options.chatHistoryPath || path.join(soloStatePath ? path.dirname(soloStatePath) : path.join(HERE, 'ops', 'codex-runtime'), 'chat-history')) : null;
   if (soloMode) {
+    app.get('/api/chat-history', (_req, res) => {
+      try { res.set('Cache-Control', 'no-store').json(chatHistory.list()); }
+      catch { res.status(500).json({ error: '聊天存档读取失败' }); }
+    });
+    app.get('/api/chat-history/:matchId/download', (req, res) => {
+      try {
+        const text = chatHistory.text(req.params.matchId);
+        if (text === null) return res.status(404).send('没有找到这局记录');
+        res.set('Cache-Control', 'no-store').attachment(`liars-tavern-${req.params.matchId}.txt`).type('text/plain').send(text);
+      } catch { res.status(400).send('聊天存档读取失败，原文件已保留'); }
+    });
+    app.get('/api/chat-history/:matchId', (req, res) => {
+      try {
+        const archive = chatHistory.read(req.params.matchId);
+        if (!archive) return res.status(404).json({ error: '没有找到这局记录' });
+        res.set('Cache-Control', 'no-store').json(archive);
+      } catch { res.status(400).json({ error: '聊天存档读取失败，原文件已保留' }); }
+    });
     app.get('/api/player-records', (_req, res) => res.json(records.summary()));
     app.get('/api/model-players', (_req, res) => res.json({ players: MODEL_PRESETS.map((preset) => ({ ...preset, name: options.modelNames?.[preset.id]?.name || preset.label })) }));
   }
@@ -121,7 +141,7 @@ export function createGameServer(options = {}) {
     const isSoloRoom = soloMode && room === soloRoom;
     state.soloMode = isSoloRoom;
     state.paused = isSoloRoom ? Boolean(room.soloPaused) : false;
-    if (isSoloRoom) { state.code = null; state.playerRecords = records.summary(); }
+    if (isSoloRoom) { state.code = null; state.playerRecords = records.summary(); state.chatArchiveError = chatHistory.error; }
     state.isHost = isSoloRoom ? Boolean(session) : Boolean(session?.isHost);
     if (session?.isHost || isSoloRoom) state.hostConfigs = roomHostConfig(room);
     return state;
@@ -155,7 +175,7 @@ export function createGameServer(options = {}) {
 
   function attachRoom(room) {
     room.onState = (target) => {
-      if (soloMode) records.observe(target);
+      if (soloMode) { records.observe(target); chatHistory.observe(target); }
       persistSoloRoom(target);
       emitState(target);
     };
@@ -256,6 +276,7 @@ export function createGameServer(options = {}) {
   }
 
   function resetSoloRoom() {
+    if (soloRoom) chatHistory?.observe(soloRoom, true);
     if (!soloRoom) return;
     const old = soloRoom;
     for (const [socketId, session] of sessions) {
@@ -501,6 +522,15 @@ export function createGameServer(options = {}) {
           if (!actor.isHost) throw new Error('host required');
           room.resumeSolo();
           break;
+        case 'speak': {
+          if (!Number.isInteger(session.seatIndex) || room.players[session.seatIndex]?.kind !== 'human') throw new Error('只有入席玩家可以发言');
+          if (room.phase === 'lobby') throw new Error('开始牌局后可以发言');
+          const text = typeof payload.text === 'string' ? payload.text.replace(/\s+/gu, ' ').trim() : '';
+          if (!text) throw new Error('请先输入内容');
+          if (Array.from(text).length > 200) throw new Error('单次发言最多 200 字');
+          room.say(session.seatIndex, text);
+          break;
+        }
         case 'play':
           if (!Number.isInteger(session.seatIndex)) throw new Error('spectator cannot play');
           room.play(session.seatIndex, payload.cardIds);

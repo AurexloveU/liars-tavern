@@ -1061,10 +1061,15 @@ export class LiarRoom {
 
   say(seatIndex, value) {
     const seat = this._assertSeat(seatIndex);
-    const text = shortSpeech(value);
+    const text = seat.kind === 'human'
+      ? Array.from(typeof value === 'string' ? value.replace(/\s+/gu, ' ').trim() : '').slice(0, 200).join('')
+      : shortSpeech(value);
     if (!text) return;
     seat.speech = { text, createdAt: this.now(), id: this.eventSeq + 1 };
-    this.addEvent(`${seat.name}：${text}`, 'speech', { seatIndex });
+    this.addEvent(`${seat.name}：${text}`, 'speech', {
+      seatIndex, message: text, speakerName: seat.name, speakerKind: seat.kind,
+      round: this.round, matchId: this.matchId,
+    });
   }
 
   publicAIFor(seatIndex, { includeBaseUrl = false } = {}) {

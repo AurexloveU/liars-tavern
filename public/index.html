@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="theme-color" content="#0b1110">
     <title>骗子酒馆 · Liar's Deck</title>
-    <link rel="stylesheet" href="./styles.css?v=players-talk-records-1">
+    <link rel="stylesheet" href="./styles.css?v=human-chat-1">
   </head>
   <body>
     <main id="app-shell" class="app-shell">
@@ -103,6 +103,15 @@
         <p id="action-help" class="action-help">等待你的回合……</p>
       </section>
 
+      <form id="chat-form" class="chat-bar" hidden aria-label="牌桌发言">
+        <div class="chat-compose">
+          <input id="chat-input" type="text" autocomplete="off" placeholder="说点什么……（Enter 发送）" aria-label="发言，最多 200 字">
+          <button id="chat-send" class="subtle-button" type="submit">发送</button>
+          <button id="chat-history-open" class="subtle-button" type="button">记录</button>
+        </div>
+        <div class="chat-caption"><span id="chat-save-status" role="status">本局聊天自动保存</span><span id="chat-count">0 / 200</span></div>
+      </form>
+
       <div id="dead-overlay" class="dead-overlay" role="status" aria-live="polite" hidden>
         <strong id="dead-title">你已淘汰，可继续旁观</strong>
         <p id="dead-copy"></p>
@@ -133,6 +142,7 @@
           <div class="settings-tabs" role="tablist" aria-label="设置分类">
             <button type="button" role="tab" id="tab-ai" aria-controls="settings-ai-panel" aria-selected="true" data-settings-tab="ai">AI 玩家</button>
             <button type="button" role="tab" id="tab-records" aria-controls="settings-records-panel" aria-selected="false" data-settings-tab="records">本机战绩</button>
+            <button type="button" role="tab" id="tab-chat" aria-controls="settings-chat-panel" aria-selected="false" data-settings-tab="chat">聊天记录</button>
             <button type="button" role="tab" id="tab-audio" aria-controls="settings-audio-panel" aria-selected="false" data-settings-tab="audio">声音</button>
           </div>
           <section id="settings-audio-panel" role="tabpanel" aria-labelledby="tab-audio" hidden>
@@ -169,6 +179,15 @@
           </div>
           <p id="settings-error" class="form-error" role="alert" hidden></p>
           </section>
+          <section id="settings-chat-panel" role="tabpanel" aria-labelledby="tab-chat" hidden>
+            <h3>每局聊天记录</h3>
+            <p class="field-help">自动保存在这台设备；暂停、刷新和重新开局后仍保留。</p>
+            <label><span>选择牌局</span><select id="chat-match-select" aria-label="选择聊天记录的牌局"></select></label>
+            <div class="chat-history-actions"><button id="chat-refresh" class="subtle-button" type="button">刷新</button><a id="chat-download" class="subtle-button" download hidden>下载 TXT</a></div>
+            <p id="chat-history-note" class="field-help"></p>
+            <p id="chat-history-error" class="form-error" role="alert" hidden></p>
+            <div id="chat-messages" class="chat-history-scroll" aria-label="聊天记录"></div>
+          </section>
           <section id="settings-records-panel" role="tabpanel" aria-labelledby="tab-records" hidden>
             <h3>本设备玩家战绩</h3>
             <p id="records-note" class="field-help">胜负按完整牌局结算；暂停和刷新不会重复计数。</p>
@@ -200,6 +219,6 @@
       }
     </script>
     <script src="./socket.io/socket.io.js"></script>
-    <script type="module" src="./app.js?v=players-talk-records-1"></script>
+    <script type="module" src="./app.js?v=human-chat-1"></script>
   </body>
 </html>

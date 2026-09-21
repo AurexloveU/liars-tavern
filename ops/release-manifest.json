@@ -10,7 +10,7 @@
   "files": [
     {
       "path": "game.js",
-      "sha256": "723b4b5c00d212de32199fa0b74df8707f053be9e82456807dd1685d782e58c6"
+      "sha256": "89d1504a31a40eb37f1d344494e3e6fd577faf6a5d903ef3b0198357a94f9394"
     },
     {
       "path": "ai.js",
@@ -22,7 +22,7 @@
     },
     {
       "path": "server.js",
-      "sha256": "af434383dfa1da27a89b02e3aaa651f2a271ab81d06d8e66f76df522838e3066"
+      "sha256": "72fafa2a7fa6b45e7b0e2bdf0656f895745f74c2c705e83d5e87fa007621e99e"
     },
     {
       "path": "package.json",
@@ -34,11 +34,11 @@
     },
     {
       "path": "public/app.js",
-      "sha256": "ea1f88ff83940b0a92b20742d69627f924ab15d709c135acdfe96130fe0aeb8e"
+      "sha256": "f73036fa3a7fdac338659a2ff32153c26f5564c4e9d0db87357024544c7fcea5"
     },
     {
       "path": "public/index.html",
-      "sha256": "3d3dfa8749e6d2e9d9f038426a864bfc44e2f9e4f052c421648da0854fa20c20"
+      "sha256": "3d535710b87ea1211a1e92635e3ae2707dfb089df1ae17fefca7b32daacff402"
     },
     {
       "path": "public/scene.js",
@@ -46,7 +46,7 @@
     },
     {
       "path": "public/styles.css",
-      "sha256": "95767ef67256cdd403b5f7ea6f3fbfa248add52c7e0d3fef343e521f5e06f1bd"
+      "sha256": "e50068cd777c02d2a8d9e6cf90d28ee91d31711c1d39413668d32612de79e7d7"
     },
     {
       "path": "test/ai.test.js",
@@ -74,7 +74,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "569399817b80faf51c74ba33cb8548afd52555b9c5dc60a401c69ae73df26190"
+      "sha256": "d8804a86b46eab58662a3bbd5a5fddc3f43ac46b2862d2c5602cd99ab2f41e37"
     },
     {
       "path": "docs/research.md",
@@ -335,6 +335,10 @@
     {
       "path": "ops/name-model-players.mjs",
       "sha256": "26d66b9e4732fb7a669dd641441e12a8bcf0e3a5eb5387b2bb21524c04620342"
+    },
+    {
+      "path": "chat-history.js",
+      "sha256": "7fb895ca0d99f5f06d1c6584db07b2d096f0b09c262de5391ae71ed33ecaeaee"
     }
   ],
   "excluded": [
@@ -460,5 +464,16 @@
     "modelCalls": 0,
     "statsIdentityChanged": false,
     "testsRun": 0
+  },
+  "humanChatAndArchives": {
+    "date": "2026-09-21",
+    "humanMaximumCodePoints": 200,
+    "aiMaximumCodePoints": 20,
+    "storage": "ops/codex-runtime/chat-history/<matchId>.json",
+    "retention": "every speech, per-match, across restarts; pre-feature history partial",
+    "download": "UTF-8 TXT",
+    "testsRun": 0,
+    "actualModelValidationCalls": 0,
+    "browserValidated": false
   }
 }
